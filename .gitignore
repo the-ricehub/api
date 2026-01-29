@@ -1,0 +1,10 @@
+config.toml
+.idea/
+keys/*.pem
+logs/*.json
+
+public/avatars/*.png
+public/avatars/*.jpg
+public/previews/*.png
+public/previews/*.jpg
+public/dotfiles/*.zip

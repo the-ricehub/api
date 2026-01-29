@@ -1,0 +1,98 @@
+This file serves as a documentation of how the API logic is implemented.
+It's written in a way thats easiest for me to understand. Don't expect anything professional from it.
+
+[BUILD]
+ELI5 how to build and run the API:
+1. Create new postgres database
+2. Run migrations from schema.sql file
+3. Rename config.toml.example to config.toml and configure everything accordingly
+4. Run `generate.sh` (its in `keys` dir) to generate required key pairs for JWT
+5. Open CLI and type: `go run src/main.go`
+
+
+-----
+
+
+[UPLOADS]
+In the beginning all user uploads (profile pictures, rice screenshots) will be stored on the same machine API is running.
+This allows for less expense at the start (because cloud storages cost a bit) for the sake of a bit of overhead.
+When the service grows a little bit we can move to Cloud storage + CDN.
+This will offload a lot of the traffic to external servers and separate the concerns (i.e. one service for hosting APIs, other for CDNs, etc).
+
+In the early stages of production, to improve the performance a bit, we can cache the images using reverse proxy (e.g. caddy or nginx).
+
+[RELATIONS]
+A quick overview of the database table relations:
+
+                                USERS
+                                  |
+                                  |
+                              one-to-many
+                                  |
+                                  |
+                                  v
+RICE DOTFILES -- one-to-one --> RICES <-- many-to-many --> TAGS
+                                  |
+                                  |
+                              one-to-many
+                                  |
+                                  |
+                                  v
+                              RICE PREVIEWS
+
+
+[AUTHORIZATION]
+JWTs will be used for authentication/authorization. User sends request to `/auth/login` and gets access token in response body, whereas refresh token is set by server in HttpOnly + Secure cookie.
+Access token is the main "key" to everything, it tells us (API) if user is an admin and his unique ID.
+It has relatively short expiration (few minutes) and needs to be "refreshed" by sending request to `/auth/refresh`.
+Refresh token holds only expiration and subject (user id) fields. This information is then used to check if user still exists and can access the service.
+The convention is to send access token with each request in `Authorization` header and refresh token with cookies only to `/auth/refresh`.
+
+[RATE LIMIT]
+There are two rate limit systems, deployed on API, to prevent abuse:
+1. Global which limits how many requests a client can make to the server no matter the endpoint
+2. Per-route which limits how many requests to the specific endpoint a user can make
+
+The global system is used for ALL routes, whereas per-route is only on paths that require making database updates/inserts or file operations.
+Why not just use global rate limit? Because authorized users could then hog up the I/O performance. 
+
+
+-----
+
+
+[USERS]
+User can log into the platform using username and password combination.
+The username is only used for authentication process and slug creation.
+Username cannot be changed, for this purpose is display name which is visible as the user's name.
+
+[TAGS]
+Tags are a basic objects that can be linked to rices using many-to-many relation.
+They can only be modified and created by an admin.
+This means that users cannot create their own tags as I dont see any benefits to this.
+
+[RICES]
+Rices can be indexed by either UUID or slug that's computed from creator's name and rice's title. For example:
+- GET /rices/be48b8be-19c1-4fa0-a310-4cba2f8db159
+  is equivalent to
+- GET /rices/testuser/my-daily-rice
+
+Using UUID as the primary identifier for rices lets us manipulate how the users see it without having to migrate after every change. Same technique is used by Steam.
+Both username and rice title is immutable. Therefore we can store it in the database and avoid computing it on the fly. Static slugs also help with SEO.
+Uniqueness must be ensured at two layers: In the database (using UNIQUE(author, slug) constraint) and API (during rice creation, title must not be taken by any other rice uploaded by this user).
+Storing the slug in database is useful if I ever decide to change how they are formatted. I can just rename the `slug` column to `old_slug` and redirect any requests from it to a new one.
+
+Rice needs at least one preview image. First image is always chosen as a thumbnail.
+
+For beta release users should be able to upload zip and tar.gz files as a dotfiles.
+When the platform grows I want to allow users to link github repository as a dotfiles.
+Then the API will embed latest release as a zip file and also include the link to github repository.
+dotfiles and other rice columns are split to future-proof if I ever add repository linking and also allows me to add metadata without making mess in the parent table.
+
+When user creates a new rice, a POST request with multipart/form-data as content type is sent.
+This lets us send both dotfiles and all info about the rice in a single request.
+
+[COMMENTS]
+Right now only rices can have comments, but in the future I can see possibility to add comments to few other places (e.g. user profiles).
+To avoid having too many nested endpoints (im talking about /rices/:riceId/comments/:commentId and /profiles/:profileId/comments/:commentId)
+I'll just use root endpoint '/comments' which will handle all comments on the platform.
+To distinguish where user wants to post a comment, we will just ask for either riceId or userId in the request body (or query params).
