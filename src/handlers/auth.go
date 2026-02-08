@@ -97,7 +97,8 @@ func Login(c *gin.Context) {
 	}
 
 	maxAge := int(math.Round(utils.Config.JWT.RefreshExpiration.Seconds()))
-	c.SetCookie("refresh_token", refresh, maxAge, "/", "localhost", false, false)
+	// TODO: use config value for the host
+	c.SetCookie("refresh_token", refresh, maxAge, "/", "127.0.0.1", false, false)
 	c.JSON(http.StatusOK, gin.H{"accessToken": access, "user": user.ToDTO()})
 }
 
@@ -142,4 +143,9 @@ func RefreshToken(c *gin.Context) {
 
 	// return new token in response body
 	c.JSON(http.StatusOK, gin.H{"accessToken": access})
+}
+
+func LogOut(c *gin.Context) {
+	c.SetCookie("refresh_token", "", -10, "/", "127.0.0.1", false, false)
+	c.Status(http.StatusOK)
 }

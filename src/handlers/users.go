@@ -44,18 +44,6 @@ func preCheck(token *utils.AccessToken, userId string) (user *models.User, err e
 	return
 }
 
-// func GetMe(c *gin.Context) {
-// 	token := c.MustGet("token").(*utils.AccessToken)
-
-// 	user, err := findUser(token.Subject)
-// 	if err != nil {
-// 		c.Error(err)
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, user.ToDTO())
-// }
-
 func GetUser(c *gin.Context) {
 	userId := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)

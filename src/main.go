@@ -10,6 +10,7 @@ import (
 	"ricehub/src/utils"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -36,7 +37,16 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
-	r.Use(gin.Recovery(), utils.LoggerMiddleware(logger), errs.ErrorHandler(logger), utils.RateLimitMiddleware(100, time.Minute))
+	// TODO: use config values
+	corsConfig := cors.Config{
+		AllowOrigins:     []string{"http://127.0.0.1:5173"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "Set-Cookie"},
+		AllowCredentials: true,
+	}
+
+	r.Use(gin.Recovery(), cors.New(corsConfig), utils.LoggerMiddleware(logger), errs.ErrorHandler(logger), utils.RateLimitMiddleware(100, time.Minute))
 
 	r.MaxMultipartMemory = utils.Config.MultipartLimit
 	if err := r.SetTrustedProxies(nil); err != nil {
@@ -95,7 +105,8 @@ func setupRoutes(r *gin.Engine) {
 	{
 		auth.POST("/register", handlers.Register)
 		auth.POST("/login", handlers.Login)
-		auth.POST("/refresh", utils.PathRateLimitMiddleware(5, utils.Config.JWT.AccessExpiration), handlers.RefreshToken)
+		auth.POST("/refresh", utils.PathRateLimitMiddleware(5, 1*time.Minute), handlers.RefreshToken)
+		auth.POST("/logout", handlers.LogOut)
 	}
 
 	users := r.Group("/users")
@@ -103,7 +114,6 @@ func setupRoutes(r *gin.Engine) {
 		users.GET("/:id/rices/:slug", handlers.GetUserRiceBySlug)
 
 		authedOnly := users.Use(utils.AuthMiddleware)
-		// authedOnly.GET("/me", handlers.GetMe)
 		authedOnly.GET("/:id", handlers.GetUser)
 		authedOnly.DELETE("/:id", handlers.DeleteUser)
 		authedOnly.PATCH("/:id/displayName", utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UpdateDisplayName)

@@ -2,7 +2,7 @@ database_url = "postgres://username:password@host/database"
 redis_url = "redis://host:port"
 cdn_url = "http://127.0.0.1:3000/public"
 multipart_limit = 2097152
-default_avatar = "/avatars/default.jpg"
+default_avatar = "/avatars/default.png"
 
 [jwt]
 access_exp = "5m"
