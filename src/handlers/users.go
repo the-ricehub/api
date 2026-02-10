@@ -202,7 +202,7 @@ func DeleteAvatar(c *gin.Context) {
 
 	repository.UpdateUserAvatarPath(userId, nil)
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{"avatarUrl": utils.Config.CDNUrl + utils.Config.DefaultAvatar})
 }
 
 func DeleteUser(c *gin.Context) {
