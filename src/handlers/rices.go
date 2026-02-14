@@ -25,6 +25,9 @@ import (
 	"go.uber.org/zap"
 )
 
+var blacklistedTitle = errs.UserError("Title contains blacklisted words!", http.StatusUnprocessableEntity)
+var blacklistedDescription = errs.UserError("Description contains blacklisted words!", http.StatusUnprocessableEntity)
+
 func checkCanUserModifyRice(token *utils.AccessToken, riceId string) error {
 	if token.IsAdmin {
 		return nil
@@ -188,6 +191,13 @@ func CreateRice(c *gin.Context) {
 		c.Error(errs.UserError("At least one preview image is required", http.StatusBadRequest))
 		return
 	}
+
+	maxPreviews := utils.Config.Limits.MaxPreviewsPerRice
+	if len(previews) > maxPreviews {
+		c.Error(errs.UserError(fmt.Sprintf("You cannot add more than %v previews", maxPreviews), http.StatusRequestEntityTooLarge))
+		return
+	}
+
 	if len(formDotfiles) == 0 {
 		c.Error(errs.UserError("Dotfiles are required", http.StatusBadRequest))
 		return
@@ -211,6 +221,21 @@ func CreateRice(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+
+	// check if title or description contains blacklisted words
+	for _, word := range utils.Config.Blacklist.Words {
+		if strings.Contains(strings.ToLower(metadata.Title), word) {
+			c.Error(blacklistedTitle)
+			return
+		}
+
+		if strings.Contains(strings.ToLower(metadata.Description), word) {
+			c.Error(blacklistedDescription)
+			return
+		}
+	}
+
+	// end validating
 
 	ctx := context.Background()
 	tx, err := repository.StartTx(ctx)
@@ -287,6 +312,19 @@ func UpdateRiceMetadata(c *gin.Context) {
 		return
 	}
 
+	// check against blacklisted words
+	for _, word := range utils.Config.Blacklist.Words {
+		if metadata.Title != nil && strings.Contains(strings.ToLower(*metadata.Title), word) {
+			c.Error(blacklistedTitle)
+			return
+		}
+
+		if metadata.Description != nil && strings.Contains(strings.ToLower(*metadata.Description), word) {
+			c.Error(blacklistedDescription)
+			return
+		}
+	}
+
 	rice, err := repository.UpdateRice(riceId, metadata.Title, metadata.Description)
 	if err != nil {
 		c.Error(errs.InternalError(err))
@@ -355,6 +393,16 @@ func AddPreview(c *gin.Context) {
 	ext, err := utils.ValidateFileAsImage(file)
 	if err != nil {
 		c.Error(err)
+		return
+	}
+
+	count, err := repository.RicePreviewCount(riceId)
+	if err != nil {
+		c.Error(errs.InternalError(err))
+		return
+	}
+	if count >= int64(utils.Config.Limits.MaxPreviewsPerRice) {
+		c.Error(errs.UserError("You have already reached the maximum amount of previews for this rice", http.StatusRequestEntityTooLarge))
 		return
 	}
 

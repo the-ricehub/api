@@ -201,6 +201,11 @@ const deletePreviewSql = `
 DELETE FROM rice_previews
 WHERE id = $1 AND rice_id = $2
 `
+const previewCountSql = `
+SELECT COUNT(*)
+FROM rice_previews
+WHERE rice_id = $1
+`
 
 type Pagination struct {
 	LastId        *uuid.UUID
@@ -212,6 +217,12 @@ func HasUserRiceWithId(riceId string, userId string) (bool, error) {
 	var exists bool
 	err := db.QueryRow(context.Background(), hasUserRiceSql, riceId, userId).Scan(&exists)
 	return exists, err
+}
+
+func RicePreviewCount(riceId string) (int64, error) {
+	var count int64
+	err := db.QueryRow(context.Background(), previewCountSql, riceId).Scan(&count)
+	return count, err
 }
 
 func FetchTrendingRices(pag *Pagination, userId string) (r []models.PartialRice, err error) {

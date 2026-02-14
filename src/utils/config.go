@@ -8,18 +8,33 @@ import (
 )
 
 type (
-	jwtConfig struct {
-		AccessExpiration  time.Duration `toml:"access_exp"`
-		RefreshExpiration time.Duration `toml:"refresh_exp"`
-	}
-
 	rootConfig struct {
 		DatabaseUrl       string `toml:"database_url"`
 		RedisUrl          string `toml:"redis_url"`
 		CDNUrl            string `toml:"cdn_url"`
 		DefaultAvatar     string `toml:"default_avatar"`
+		CorsOrigin        string `toml:"cors_origin"`
+		DisableRateLimits bool   `toml:"disable_rate_limits"`
 		JWT               jwtConfig
-		DisableRateLimits bool `toml:"disable_rate_limits"`
+		Limits            limitsConfig
+		Blacklist         blacklistConfig
+	}
+
+	jwtConfig struct {
+		AccessExpiration  time.Duration `toml:"access_exp"`
+		RefreshExpiration time.Duration `toml:"refresh_exp"`
+	}
+
+	limitsConfig struct {
+		MaxPreviewsPerRice  int   `toml:"max_previews_per_rice"`
+		UserAvatarSizeLimit int64 `toml:"user_avatar_size_limit"`
+		DotfilesSizeLimit   int64 `toml:"dotfiles_size_limit"`
+		PreviewSizeLimit    int64 `toml:"preview_size_limit"`
+	}
+
+	blacklistConfig struct {
+		Words     []string
+		Usernames []string
 	}
 )
 

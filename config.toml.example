@@ -1,10 +1,24 @@
 database_url = "postgres://username:password@host/database"
 redis_url = "redis://host:port"
 cdn_url = "http://127.0.0.1:3000/public"
-multipart_limit = 2097152
 default_avatar = "/avatars/default.png"
+cors_origin = "http://127.0.0.1:5173"
 disable_rate_limits = false
+
+[limits]
+max_previews_per_rice = 10
+user_avatar_size_limit = 5000000 # 5MB
+dotfiles_size_limit = 500000000 # 500MB
+preview_size_limit = 10000000 # 10MB
 
 [jwt]
 access_exp = "5m"
 refresh_exp = "168h"
+
+[blacklist]
+# user's username and display name gets checked against both `words` and `usernames`
+# however rice's description and title is checked only against `words`
+# as to not restrict use of words that could be useful in some cases
+
+words = [ "bad" ]
+usernames = [ "admin", "moderator" ]

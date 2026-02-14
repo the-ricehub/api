@@ -9,6 +9,7 @@ import (
 	"ricehub/src/models"
 	"ricehub/src/repository"
 	"ricehub/src/utils"
+	"strings"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
@@ -102,6 +103,15 @@ func UpdateDisplayName(c *gin.Context) {
 	if err := utils.ValidateJSON(c, &body); err != nil {
 		c.Error(err)
 		return
+	}
+
+	// check if display name is blacklisted
+	blacklist := append(utils.Config.Blacklist.Words, utils.Config.Blacklist.Usernames[:]...)
+	for _, word := range blacklist {
+		if strings.Contains(strings.ToLower(body.DisplayName), word) {
+			c.Error(errs.BlacklistedDisplayName)
+			return
+		}
 	}
 
 	err = repository.UpdateUserDisplayName(userId, body.DisplayName)
