@@ -29,6 +29,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "build/api"
           target: ${{ vars.VPS_TARGET_DIR }}
+          strip_components: 1
 
       - name: Restart API service
         uses: appleboy/ssh-action@v1
