@@ -103,6 +103,10 @@ func setupRoutes(r *gin.Engine) {
 
 	r.Static("/public", "./public")
 
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "I'm working and responding!"})
+	})
+
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register", handlers.Register)
