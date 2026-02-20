@@ -168,6 +168,7 @@ func setupRoutes(r *gin.Engine) {
 	comments := r.Group("/comments").Use(utils.AuthMiddleware)
 	{
 		comments.POST("", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(10, time.Hour), handlers.AddComment)
+		comments.GET("/:id", utils.PathRateLimitMiddleware(10, time.Minute), handlers.GetCommentById)
 		comments.PATCH("/:id", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(10, time.Hour), handlers.UpdateComment)
 		comments.DELETE("/:id", utils.MaintenanceMiddleware(), handlers.DeleteComment)
 	}

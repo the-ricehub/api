@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -48,6 +49,23 @@ func AddComment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, comment.ToDTO())
+}
+
+func GetCommentById(c *gin.Context) {
+	commentId := c.Param("id")
+
+	comment, err := repository.FindCommentById(commentId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.Error(errs.UserError("Comment with provided ID not found", http.StatusNotFound))
+			return
+		}
+
+		c.Error(errs.InternalError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, comment.ToDTO())
 }
 
 func UpdateComment(c *gin.Context) {

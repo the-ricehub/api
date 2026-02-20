@@ -61,6 +61,17 @@ type RiceComment struct {
 	UpdatedAt time.Time
 }
 
+type RiceCommentWithSlug struct {
+	Id                 uuid.UUID
+	RiceId             uuid.UUID
+	AuthorId           uuid.UUID
+	Content            string
+	RiceSlug           string
+	RiceAuthorUsername string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
 type CommentWithUser struct {
 	CommentId   uuid.UUID
 	Content     string

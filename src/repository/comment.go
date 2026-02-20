@@ -24,6 +24,15 @@ INSERT INTO rice_comments (rice_id, author_id, content)
 VALUES ($1, $2, $3)
 RETURNING *
 `
+
+// deluxe version of find comment because it fetches username and slug too
+const findCommentByIdSql = `
+SELECT rc.*, r.slug AS rice_slug, u.username AS rice_author_username
+FROM rice_comments rc
+JOIN rices r ON r.id = rc.rice_id
+JOIN users u ON u.id = r.author_id
+WHERE rc.id = $1
+`
 const updateCommentSql = `
 UPDATE rice_comments SET content = $1 WHERE id = $2
 RETURNING *
@@ -46,6 +55,11 @@ func FetchCommentsByRiceId(riceId string) (c []models.CommentWithUser, err error
 
 func InsertComment(riceId string, authorId string, content string) (c models.RiceComment, err error) {
 	c, err = rowToStruct[models.RiceComment](insertCommentSql, riceId, authorId, content)
+	return
+}
+
+func FindCommentById(commentId string) (c models.RiceCommentWithSlug, err error) {
+	c, err = rowToStruct[models.RiceCommentWithSlug](findCommentByIdSql, commentId)
 	return
 }
 

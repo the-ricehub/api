@@ -82,6 +82,7 @@ type UserDTO struct {
 	Username    string    `json:"username"`
 	DisplayName string    `json:"displayName"`
 	AvatarUrl   string    `json:"avatarUrl"`
+	IsAdmin     bool      `json:"isAdmin"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
@@ -92,6 +93,7 @@ func (u User) ToDTO() UserDTO {
 		Username:    u.Username,
 		DisplayName: u.DisplayName,
 		AvatarUrl:   getUserAvatar(u.AvatarPath),
+		IsAdmin:     u.IsAdmin,
 		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
 	}
@@ -204,6 +206,7 @@ func (r RiceWithRelations) ToDTO() RiceWithRelationsDTO {
 
 type RiceCommentDTO struct {
 	Id        uuid.UUID `json:"id"`
+	RiceId    uuid.UUID `json:"riceId"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -212,9 +215,34 @@ type RiceCommentDTO struct {
 func (c RiceComment) ToDTO() RiceCommentDTO {
 	return RiceCommentDTO{
 		Id:        c.Id,
+		RiceId:    c.RiceId,
 		Content:   c.Content,
 		CreatedAt: c.CreatedAt,
 		UpdatedAt: c.UpdatedAt,
+	}
+}
+
+type RiceCommentWithSlugDTO struct {
+	Id                 uuid.UUID `json:"id"`
+	RiceId             uuid.UUID `json:"riceId"`
+	AuthorId           uuid.UUID `json:"authorId"`
+	Content            string    `json:"content"`
+	RiceSlug           string    `json:"riceSlug"`
+	RiceAuthorUsername string    `json:"riceAuthorUsername"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+func (c RiceCommentWithSlug) ToDTO() RiceCommentWithSlugDTO {
+	return RiceCommentWithSlugDTO{
+		Id:                 c.Id,
+		RiceId:             c.RiceId,
+		AuthorId:           c.AuthorId,
+		Content:            c.Content,
+		RiceSlug:           c.RiceSlug,
+		RiceAuthorUsername: c.RiceAuthorUsername,
+		CreatedAt:          c.CreatedAt,
+		UpdatedAt:          c.UpdatedAt,
 	}
 }
 
