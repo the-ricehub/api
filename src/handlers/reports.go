@@ -14,11 +14,9 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// ability to report rice using id or comment using id
-
 var reportNotFound = errs.UserError("Report with provided ID not found!", http.StatusNotFound)
 
-func GetAllReports(c *gin.Context) {
+func FetchReports(c *gin.Context) {
 	reports, err := repository.FetchReports()
 	if err != nil {
 		c.Error(errs.InternalError(err))
@@ -28,7 +26,7 @@ func GetAllReports(c *gin.Context) {
 	c.JSON(http.StatusOK, models.ReportsToDTO(reports))
 }
 
-func GetReport(c *gin.Context) {
+func GetReportById(c *gin.Context) {
 	reportId := c.Param("reportId")
 	report, err := repository.FindReport(reportId)
 	if err != nil {
@@ -58,7 +56,8 @@ func CreateReport(c *gin.Context) {
 		return
 	}
 
-	if err := repository.InsertReport(token.Subject, report.Reason, report.RiceId, report.CommentId); err != nil {
+	reportId, err := repository.InsertReport(token.Subject, report.Reason, report.RiceId, report.CommentId)
+	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -66,7 +65,7 @@ func CreateReport(c *gin.Context) {
 				c.Error(errs.UserError("Resource with provided ID not found!", http.StatusNotFound))
 				return
 			case pgerrcode.UniqueViolation:
-				c.Error(errs.UserError("You have already submitted a similar report.", http.StatusConflict))
+				c.Error(errs.UserError("You have already submitted a similar report!", http.StatusConflict))
 				return
 			}
 		}
@@ -75,7 +74,7 @@ func CreateReport(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{"reportId": reportId})
 }
 
 func CloseReport(c *gin.Context) {

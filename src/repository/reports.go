@@ -3,11 +3,14 @@ package repository
 import (
 	"context"
 	"ricehub/src/models"
+
+	"github.com/google/uuid"
 )
 
 const insertReportSql = `
 INSERT INTO reports (reporter_id, reason, rice_id, comment_id)
 VALUES ($1, $2, $3, $4)
+RETURNING id
 `
 const fetchReportsSql = `
 SELECT r.*, u.display_name, u.username
@@ -23,9 +26,9 @@ WHERE r.id = $1
 `
 const setIsClosedSql = `UPDATE reports SET is_closed = $1 WHERE id = $2`
 
-func InsertReport(reporterId string, reason string, riceId *string, commentId *string) error {
-	_, err := db.Exec(context.Background(), insertReportSql, reporterId, reason, riceId, commentId)
-	return err
+func InsertReport(reporterId string, reason string, riceId *string, commentId *string) (id uuid.UUID, err error) {
+	err = db.QueryRow(context.Background(), insertReportSql, reporterId, reason, riceId, commentId).Scan(&id)
+	return
 }
 
 func FetchReports() (r []models.ReportWithUser, err error) {

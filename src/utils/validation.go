@@ -50,12 +50,12 @@ func InitValidator() {
 		addCustomTag(v, "displayname", func(displayName string) bool {
 			re := regexp.MustCompile(`^[a-zA-Z0-9 _\-.]+$`)
 			return re.MatchString(displayName)
-		}, "{0} can contain only a-Z, 0-9, whitespace, dot, underscore and dash")
+		}, "{0} can contain only a-Z, 0-9, whitespace, dot, underscore and dash characters.")
 
 		addCustomTag(v, "ricetitle", func(riceTitle string) bool {
-			re := regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)
+			re := regexp.MustCompile(`^[\[\]()a-zA-Z0-9 '_-]+$`)
 			return re.MatchString(riceTitle)
-		}, "{0} can contain only a-Z, 0-9 and whitespace")
+		}, "{0} can contain only a-Z, 0-9, -, _, [], () and whitespace characters.")
 
 		zap.L().Info("Validator initialized")
 	}

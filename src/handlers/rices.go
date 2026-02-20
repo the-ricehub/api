@@ -246,7 +246,7 @@ func CreateRice(c *gin.Context) {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			c.Error(errs.UserError("Provided rice title is already taken by your another rice", http.StatusConflict))
+			c.Error(errs.UserError("Provided rice title is already in use!", http.StatusConflict))
 			return
 		}
 

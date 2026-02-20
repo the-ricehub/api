@@ -177,8 +177,8 @@ func setupRoutes(r *gin.Engine) {
 		reports.POST("", utils.PathRateLimitMiddleware(50, 24*time.Hour), handlers.CreateReport)
 
 		adminOnly := reports.Use(utils.AdminMiddleware)
-		adminOnly.GET("", handlers.GetAllReports)
-		adminOnly.GET("/:reportId", handlers.GetReport)
+		adminOnly.GET("", handlers.FetchReports)
+		adminOnly.GET("/:reportId", handlers.GetReportById)
 		adminOnly.POST("/:reportId/close", handlers.CloseReport)
 	}
 }
