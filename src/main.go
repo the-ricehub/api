@@ -128,11 +128,9 @@ func setupRoutes(r *gin.Engine) {
 		users.GET("/:id/rices/:slug", defaultRL, handlers.GetUserRiceBySlug)
 
 		authedOnly := users.Use(utils.AuthMiddleware)
-
-		authedOnly.GET("", utils.AdminMiddleware, handlers.FetchRecentUsers)
-
-		authedOnly.GET("/:id", handlers.GetUser)
-		authedOnly.DELETE("/:id", utils.MaintenanceMiddleware(), handlers.DeleteUser) // should this be affected by maintenance mode?
+		authedOnly.GET("", handlers.FetchUsers)
+		authedOnly.GET("/:id", defaultRL, handlers.GetUserById)
+		authedOnly.DELETE("/:id", utils.MaintenanceMiddleware(), defaultRL, handlers.DeleteUser) // should this be affected by maintenance mode?
 		authedOnly.PATCH("/:id/displayName", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UpdateDisplayName)
 		authedOnly.PATCH("/:id/password", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UpdatePassword)
 		authedOnly.POST("/:id/avatar", utils.MaintenanceMiddleware(), utils.FileSizeLimitMiddleware(utils.Config.Limits.UserAvatarSizeLimit), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UploadAvatar)
