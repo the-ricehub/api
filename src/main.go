@@ -187,4 +187,9 @@ func setupRoutes(r *gin.Engine) {
 		adminOnly.GET("/:reportId", handlers.GetReportById)
 		adminOnly.POST("/:reportId/close", handlers.CloseReport)
 	}
+
+	admin := r.Group("/admin").Use(utils.AuthMiddleware, utils.AdminMiddleware)
+	{
+		admin.GET("/stats", handlers.ServiceStatistics)
+	}
 }

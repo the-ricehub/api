@@ -343,3 +343,20 @@ func ReportsToDTO(reports []ReportWithUser) []ReportWithUserDTO {
 	}
 	return dto
 }
+
+// Admin
+type ServiceStatisticsDTO struct {
+	UserCount    int `json:"userCount"`
+	RiceCount    int `json:"riceCount"`
+	CommentCount int `json:"commentCount"`
+	ReportCount  int `json:"reportCount"`
+}
+
+func (s ServiceStatistics) ToDTO() ServiceStatisticsDTO {
+	return ServiceStatisticsDTO{
+		UserCount:    s.UserCount,
+		RiceCount:    s.RiceCount,
+		CommentCount: s.CommentCount,
+		ReportCount:  s.ReportCount,
+	}
+}

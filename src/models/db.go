@@ -115,3 +115,10 @@ type ReportWithUser struct {
 	IsClosed    bool
 	CreatedAt   time.Time
 }
+
+type ServiceStatistics struct {
+	UserCount    int
+	RiceCount    int
+	CommentCount int
+	ReportCount  int
+}
