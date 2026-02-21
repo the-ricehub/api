@@ -346,17 +346,16 @@ func ReportsToDTO(reports []ReportWithUser) []ReportWithUserDTO {
 
 // Admin
 type ServiceStatisticsDTO struct {
-	UserCount    int `json:"userCount"`
-	RiceCount    int `json:"riceCount"`
-	CommentCount int `json:"commentCount"`
-	ReportCount  int `json:"reportCount"`
+	UserCount       int `json:"userCount"`
+	User24hCount    int `json:"user24hCount"`
+	RiceCount       int `json:"riceCount"`
+	Rice24hCount    int `json:"rice24hCount"`
+	CommentCount    int `json:"commentCount"`
+	Comment24hCount int `json:"comment24hCount"`
+	ReportCount     int `json:"reportCount"`
+	OpenReportCount int `json:"openReportCount"`
 }
 
 func (s ServiceStatistics) ToDTO() ServiceStatisticsDTO {
-	return ServiceStatisticsDTO{
-		UserCount:    s.UserCount,
-		RiceCount:    s.RiceCount,
-		CommentCount: s.CommentCount,
-		ReportCount:  s.ReportCount,
-	}
+	return ServiceStatisticsDTO(s)
 }

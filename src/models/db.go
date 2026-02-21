@@ -117,8 +117,12 @@ type ReportWithUser struct {
 }
 
 type ServiceStatistics struct {
-	UserCount    int
-	RiceCount    int
-	CommentCount int
-	ReportCount  int
+	UserCount       int
+	User24hCount    int
+	RiceCount       int
+	Rice24hCount    int
+	CommentCount    int
+	Comment24hCount int
+	ReportCount     int
+	OpenReportCount int
 }
