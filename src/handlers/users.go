@@ -55,6 +55,22 @@ func GetUserIdFromRequest(c *gin.Context) *string {
 	return userId
 }
 
+func FetchRecentUsers(c *gin.Context) {
+	limit, err := utils.ParseLimitQuery(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	users, err := repository.FetchRecentUsers(limit)
+	if err != nil {
+		c.Error(errs.InternalError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.UsersToDTOs(users))
+}
+
 func GetUser(c *gin.Context) {
 	userId := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)

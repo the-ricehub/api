@@ -24,6 +24,13 @@ INSERT INTO rice_comments (rice_id, author_id, content)
 VALUES ($1, $2, $3)
 RETURNING *
 `
+const fetchRecentCommentsSql = `
+SELECT c.id AS comment_id, c.content, c.created_at, c.updated_at, u.display_name, u.username, u.avatar_path
+FROM rice_comments c
+JOIN users u ON u.id = c.author_id
+ORDER BY c.created_at DESC
+LIMIT $1
+`
 
 // deluxe version of find comment because it fetches username and slug too
 const findCommentByIdSql = `
@@ -42,19 +49,24 @@ DELETE FROM rice_comments
 WHERE id = $1
 `
 
+func InsertComment(riceId string, authorId string, content string) (c models.RiceComment, err error) {
+	c, err = rowToStruct[models.RiceComment](insertCommentSql, riceId, authorId, content)
+	return
+}
+
 func HasUserCommentWithId(commentId string, userId string) (bool, error) {
 	var exists bool
 	err := db.QueryRow(context.Background(), hasUserCommentSql, commentId, userId).Scan(&exists)
 	return exists, err
 }
 
-func FetchCommentsByRiceId(riceId string) (c []models.CommentWithUser, err error) {
-	c, err = rowsToStruct[models.CommentWithUser](riceCommentsSql, riceId)
+func FetchRecentComments(limit int64) (c []models.CommentWithUser, err error) {
+	c, err = rowsToStruct[models.CommentWithUser](fetchRecentCommentsSql, limit)
 	return
 }
 
-func InsertComment(riceId string, authorId string, content string) (c models.RiceComment, err error) {
-	c, err = rowToStruct[models.RiceComment](insertCommentSql, riceId, authorId, content)
+func FetchCommentsByRiceId(riceId string) (c []models.CommentWithUser, err error) {
+	c, err = rowsToStruct[models.CommentWithUser](riceCommentsSql, riceId)
 	return
 }
 

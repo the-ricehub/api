@@ -128,6 +128,9 @@ func setupRoutes(r *gin.Engine) {
 		users.GET("/:id/rices/:slug", defaultRL, handlers.GetUserRiceBySlug)
 
 		authedOnly := users.Use(utils.AuthMiddleware)
+
+		authedOnly.GET("", utils.AdminMiddleware, handlers.FetchRecentUsers)
+
 		authedOnly.GET("/:id", handlers.GetUser)
 		authedOnly.DELETE("/:id", utils.MaintenanceMiddleware(), handlers.DeleteUser) // should this be affected by maintenance mode?
 		authedOnly.PATCH("/:id/displayName", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UpdateDisplayName)
@@ -167,6 +170,8 @@ func setupRoutes(r *gin.Engine) {
 
 	comments := r.Group("/comments").Use(utils.AuthMiddleware)
 	{
+		comments.GET("", utils.AdminMiddleware, handlers.GetRecentComments)
+
 		comments.POST("", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(10, time.Hour), handlers.AddComment)
 		comments.GET("/:id", utils.PathRateLimitMiddleware(10, time.Minute), handlers.GetCommentById)
 		comments.PATCH("/:id", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(10, time.Hour), handlers.UpdateComment)

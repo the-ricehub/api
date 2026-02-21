@@ -30,6 +30,18 @@ func InsertUser(username string, displayName string, password string) error {
 	return nil
 }
 
+func FetchRecentUsers(limit int64) (users []models.User, err error) {
+	const sql = `
+	SELECT *
+	FROM users
+	ORDER BY created_at DESC
+	LIMIT $1
+	`
+
+	users, err = rowsToStruct[models.User](sql, limit)
+	return
+}
+
 func FindUserByUsername(username string) (*models.User, error) {
 	query := "SELECT * FROM users WHERE username = $1 LIMIT 1"
 	rows, _ := db.Query(context.Background(), query, username)

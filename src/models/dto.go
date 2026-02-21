@@ -99,6 +99,14 @@ func (u User) ToDTO() UserDTO {
 	}
 }
 
+func UsersToDTOs(users []User) []UserDTO {
+	dtos := make([]UserDTO, len(users))
+	for i, u := range users {
+		dtos[i] = u.ToDTO()
+	}
+	return dtos
+}
+
 type TagDTO struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`

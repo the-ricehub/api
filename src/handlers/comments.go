@@ -51,6 +51,22 @@ func AddComment(c *gin.Context) {
 	c.JSON(http.StatusCreated, comment.ToDTO())
 }
 
+func GetRecentComments(c *gin.Context) {
+	limit, err := utils.ParseLimitQuery(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	comments, err := repository.FetchRecentComments(limit)
+	if err != nil {
+		c.Error(errs.InternalError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, models.CommentsWithUserToDTOs(comments))
+}
+
 func GetCommentById(c *gin.Context) {
 	commentId := c.Param("id")
 
