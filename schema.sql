@@ -158,5 +158,5 @@ VALUES
 
 INSERT INTO links (name, url)
 VALUES
-    ('discord', 'https://discord.com')
+    ('discord', 'https://discord.com'),
     ('github', 'https://github.com');
