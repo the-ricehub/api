@@ -13,9 +13,9 @@ SELECT EXISTS (
 )
 `
 const riceCommentsSql = `
-SELECT c.id AS comment_id, c.content, c.created_at, c.updated_at, u.display_name, u.username, u.avatar_path
+SELECT c.id AS comment_id, c.content, c.created_at, c.updated_at, u.display_name, u.username, u.avatar_path, u.is_banned
 FROM rice_comments c
-JOIN users u ON u.id = c.author_id
+JOIN users_with_ban_status u ON u.id = c.author_id
 WHERE rice_id = $1
 ORDER BY created_at DESC
 `
@@ -25,9 +25,9 @@ VALUES ($1, $2, $3)
 RETURNING *
 `
 const fetchRecentCommentsSql = `
-SELECT c.id AS comment_id, c.content, c.created_at, c.updated_at, u.display_name, u.username, u.avatar_path
+SELECT c.id AS comment_id, c.content, c.created_at, c.updated_at, u.display_name, u.username, u.avatar_path, u.is_banned
 FROM rice_comments c
-JOIN users u ON u.id = c.author_id
+JOIN users_with_ban_status u ON u.id = c.author_id
 ORDER BY c.created_at DESC
 LIMIT $1
 `

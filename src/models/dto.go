@@ -263,6 +263,7 @@ type CommentWithUserDTO struct {
 	DisplayName string    `json:"displayName"`
 	Username    string    `json:"username"`
 	Avatar      string    `json:"avatar"`
+	IsBanned    bool      `json:"isBanned"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
@@ -274,6 +275,7 @@ func (c CommentWithUser) ToDTO() CommentWithUserDTO {
 		DisplayName: c.DisplayName,
 		Username:    c.Username,
 		Avatar:      utils.GetUserAvatar(c.AvatarPath),
+		IsBanned:    c.IsBanned,
 		CreatedAt:   c.CreatedAt,
 		UpdatedAt:   c.UpdatedAt,
 	}

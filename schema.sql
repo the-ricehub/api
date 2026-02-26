@@ -165,7 +165,7 @@ CREATE TABLE user_bans (
     is_revoked BOOL NOT NULL DEFAULT false,
     expires_at TIMESTAMPTZ,
     banned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    revoked_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ
 );
 
 CREATE OR REPLACE FUNCTION update_revoked_at()

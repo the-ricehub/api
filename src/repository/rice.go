@@ -105,7 +105,7 @@ func buildFindRiceSql(findBy FindRiceBy) string {
 		count(DISTINCT s.user_id) AS star_count,
 		coalesce(bool_or(s.user_id = $1), false) AS is_starred
 	FROM base
-	JOIN users u ON u.id = base.author_id
+	JOIN users_with_ban_status u ON u.id = base.author_id
 	JOIN rice_dotfiles df ON df.rice_id = base.id
 	JOIN rice_previews p ON p.rice_id = base.id
 	LEFT JOIN rice_stars s ON s.rice_id = base.id
@@ -311,7 +311,7 @@ func FindRiceBySlug(userID *string, slug string, username string) (r models.Rice
 	return
 }
 
-func FetchUserRices(userID string) (r []models.PartialRice, err error) {
+func FetchUserRices[T string | uuid.UUID](userID T) (r []models.PartialRice, err error) {
 	r, err = rowsToStruct[models.PartialRice](fetchUserRicesSql, userID)
 	return
 }

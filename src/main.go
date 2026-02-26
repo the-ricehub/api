@@ -142,6 +142,11 @@ func setupRoutes(r *gin.Engine) {
 		adminOnly.DELETE("/:id/ban", handlers.UnbanUser)
 	}
 
+	profiles := r.Group("/profiles")
+	{
+		profiles.GET("/:username", handlers.GetUserProfile)
+	}
+
 	tags := r.Group("/tags")
 	{
 		tags.GET("", handlers.GetAllTags)

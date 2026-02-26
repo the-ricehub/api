@@ -84,6 +84,9 @@ func GetUserIdFromRequest(c *gin.Context) *string {
 }
 
 func FetchUsers(c *gin.Context) {
+	// is it needed?
+	// with profiles now being a separate resource its not used anywhere
+	// I'll remove it in later commits if it does not change
 	username := c.Query("username")
 	if username != "" {
 		user, err := repository.FindUserByUsername(username)

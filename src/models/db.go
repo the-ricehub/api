@@ -11,11 +11,11 @@ type User struct {
 	Username    string
 	DisplayName string `json:"display_name"`
 	Password    string
-	AvatarPath  *string
-	IsAdmin     bool
-	IsBanned    bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	AvatarPath  *string   `json:"avatar_path"`
+	IsAdmin     bool      `json:"is_admin"`
+	IsBanned    bool      `json:"is_banned"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type Tag struct {
@@ -79,6 +79,7 @@ type CommentWithUser struct {
 	DisplayName string
 	Username    string
 	AvatarPath  *string
+	IsBanned    bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
