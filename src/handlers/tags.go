@@ -15,7 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-var invalidTagId = errs.UserError("Failed to parse tag ID, it must be an integer!", http.StatusBadRequest)
+var invalidTagID = errs.UserError("Failed to parse tag ID, it must be an integer!", http.StatusBadRequest)
 var tagNotFound = errs.UserError("Tag with provided ID not found", http.StatusNotFound)
 
 func GetAllTags(c *gin.Context) {
@@ -58,7 +58,7 @@ func CreateTag(c *gin.Context) {
 func UpdateTag(c *gin.Context) {
 	tagId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Error(invalidTagId)
+		c.Error(invalidTagID)
 		return
 	}
 
@@ -85,7 +85,7 @@ func UpdateTag(c *gin.Context) {
 func DeleteTag(c *gin.Context) {
 	tagId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.Error(invalidTagId)
+		c.Error(invalidTagID)
 		return
 	}
 

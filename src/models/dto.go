@@ -43,6 +43,16 @@ type DeleteUserDTO struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type BanUserDTO struct {
+	Reason   string  `json:"reason" binding:"required,min=6,max=1024"`
+	Duration *string `json:"duration" binding:"omitempty"`
+}
+
+type UpdateUserBanDTO struct {
+	Reason   *string `json:"reason" binding:"omitempty,min=6,max=1024"`
+	Duration *string `json:"duration" binding:"omitempty"`
+}
+
 // TAGS
 type TagNameDTO struct {
 	Name string `json:"name" binding:"required,min=2,max=16,alpha,ascii"`
@@ -61,7 +71,7 @@ type UpdateRiceDTO struct {
 
 // COMMENTS
 type AddCommentDTO struct {
-	RiceId  string `json:"riceId" binding:"required,uuid"`
+	RiceID  string `json:"riceId" binding:"required,uuid"`
 	Content string `json:"content" binding:"required,min=8,max=128"`
 }
 
@@ -72,13 +82,13 @@ type UpdateCommentDTO struct {
 // REPORTS
 type CreateReportDTO struct {
 	Reason    string  `json:"reason" binding:"required,min=8,max=1024"`
-	RiceId    *string `json:"riceId" binding:"omitempty,uuid"`
-	CommentId *string `json:"commentId" binding:"omitempty,uuid"`
+	RiceID    *string `json:"riceId" binding:"omitempty,uuid"`
+	CommentID *string `json:"commentId" binding:"omitempty,uuid"`
 }
 
 // Responses
 type UserDTO struct {
-	Id          uuid.UUID `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Username    string    `json:"username"`
 	DisplayName string    `json:"displayName"`
 	AvatarUrl   string    `json:"avatarUrl"`
@@ -89,7 +99,7 @@ type UserDTO struct {
 
 func (u User) ToDTO() UserDTO {
 	return UserDTO{
-		Id:          u.Id,
+		ID:          u.ID,
 		Username:    u.Username,
 		DisplayName: u.DisplayName,
 		AvatarUrl:   getUserAvatar(u.AvatarPath),
@@ -108,13 +118,13 @@ func UsersToDTOs(users []User) []UserDTO {
 }
 
 type TagDTO struct {
-	Id   int    `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
 func (t Tag) ToDTO() TagDTO {
 	return TagDTO{
-		Id:   t.Id,
+		ID:   t.ID,
 		Name: t.Name,
 	}
 }
@@ -136,7 +146,7 @@ func (df RiceDotfiles) ToDTO() RiceDotfilesDTO {
 }
 
 type RiceDTO struct {
-	Id          uuid.UUID       `json:"id"`
+	ID          uuid.UUID       `json:"id"`
 	Title       string          `json:"title"`
 	Slug        string          `json:"slug"`
 	Description string          `json:"description"`
@@ -150,7 +160,7 @@ type RiceDTO struct {
 
 func (r Rice) ToDTO() RiceDTO {
 	return RiceDTO{
-		Id:          r.Id,
+		ID:          r.ID,
 		Title:       r.Title,
 		Slug:        r.Slug,
 		Description: r.Description,
@@ -164,19 +174,19 @@ func (r Rice) ToDTO() RiceDTO {
 }
 
 type RicePreviewDTO struct {
-	Id  uuid.UUID `json:"id"`
+	ID  uuid.UUID `json:"id"`
 	Url string    `json:"url"`
 }
 
 func (p RicePreview) ToDTO() RicePreviewDTO {
 	return RicePreviewDTO{
-		Id:  p.Id,
+		ID:  p.ID,
 		Url: utils.Config.CDNUrl + p.FilePath,
 	}
 }
 
 type RiceWithRelationsDTO struct {
-	Id          uuid.UUID        `json:"id"`
+	ID          uuid.UUID        `json:"id"`
 	Title       string           `json:"title"`
 	Slug        string           `json:"slug"`
 	Description string           `json:"description"`
@@ -197,7 +207,7 @@ func (r RiceWithRelations) ToDTO() RiceWithRelationsDTO {
 	}
 
 	return RiceWithRelationsDTO{
-		Id:          r.Rice.Id,
+		ID:          r.Rice.ID,
 		Title:       r.Rice.Title,
 		Slug:        r.Rice.Slug,
 		Description: r.Rice.Description,
@@ -213,8 +223,8 @@ func (r RiceWithRelations) ToDTO() RiceWithRelationsDTO {
 }
 
 type RiceCommentDTO struct {
-	Id        uuid.UUID `json:"id"`
-	RiceId    uuid.UUID `json:"riceId"`
+	ID        uuid.UUID `json:"id"`
+	RiceID    uuid.UUID `json:"riceId"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -222,8 +232,8 @@ type RiceCommentDTO struct {
 
 func (c RiceComment) ToDTO() RiceCommentDTO {
 	return RiceCommentDTO{
-		Id:        c.Id,
-		RiceId:    c.RiceId,
+		ID:        c.ID,
+		RiceID:    c.RiceID,
 		Content:   c.Content,
 		CreatedAt: c.CreatedAt,
 		UpdatedAt: c.UpdatedAt,
@@ -231,9 +241,9 @@ func (c RiceComment) ToDTO() RiceCommentDTO {
 }
 
 type RiceCommentWithSlugDTO struct {
-	Id                 uuid.UUID `json:"id"`
-	RiceId             uuid.UUID `json:"riceId"`
-	AuthorId           uuid.UUID `json:"authorId"`
+	ID                 uuid.UUID `json:"id"`
+	RiceID             uuid.UUID `json:"riceId"`
+	AuthorID           uuid.UUID `json:"authorId"`
 	Content            string    `json:"content"`
 	RiceSlug           string    `json:"riceSlug"`
 	RiceAuthorUsername string    `json:"riceAuthorUsername"`
@@ -243,9 +253,9 @@ type RiceCommentWithSlugDTO struct {
 
 func (c RiceCommentWithSlug) ToDTO() RiceCommentWithSlugDTO {
 	return RiceCommentWithSlugDTO{
-		Id:                 c.Id,
-		RiceId:             c.RiceId,
-		AuthorId:           c.AuthorId,
+		ID:                 c.ID,
+		RiceID:             c.RiceID,
+		AuthorID:           c.AuthorID,
 		Content:            c.Content,
 		RiceSlug:           c.RiceSlug,
 		RiceAuthorUsername: c.RiceAuthorUsername,
@@ -255,7 +265,7 @@ func (c RiceCommentWithSlug) ToDTO() RiceCommentWithSlugDTO {
 }
 
 type CommentWithUserDTO struct {
-	CommentId   uuid.UUID `json:"commentId"`
+	CommentID   uuid.UUID `json:"commentId"`
 	Content     string    `json:"content"`
 	DisplayName string    `json:"displayName"`
 	Username    string    `json:"username"`
@@ -266,7 +276,7 @@ type CommentWithUserDTO struct {
 
 func (c CommentWithUser) ToDTO() CommentWithUserDTO {
 	return CommentWithUserDTO{
-		CommentId:   c.CommentId,
+		CommentID:   c.CommentID,
 		Content:     c.Content,
 		DisplayName: c.DisplayName,
 		Username:    c.Username,
@@ -285,7 +295,7 @@ func CommentsWithUserToDTOs(comments []CommentWithUser) []CommentWithUserDTO {
 }
 
 type PartialRiceDTO struct {
-	Id          uuid.UUID `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug"`
 	DisplayName string    `json:"displayName"`
@@ -299,7 +309,7 @@ type PartialRiceDTO struct {
 
 func (r PartialRice) ToDTO() PartialRiceDTO {
 	return PartialRiceDTO{
-		Id:          r.Id,
+		ID:          r.ID,
 		Title:       r.Title,
 		Slug:        r.Slug,
 		DisplayName: r.DisplayName,
@@ -321,13 +331,13 @@ func PartialRicesToDTOs(rices []PartialRice) []PartialRiceDTO {
 }
 
 type ReportWithUserDTO struct {
-	Id          uuid.UUID  `json:"id"`
-	ReporterId  uuid.UUID  `json:"reporterId"`
+	ID          uuid.UUID  `json:"id"`
+	ReporterID  uuid.UUID  `json:"reporterId"`
 	DisplayName string     `json:"displayName"`
 	Username    string     `json:"username"`
 	Reason      string     `json:"reason"`
-	RiceId      *uuid.UUID `json:"riceId,omitempty"`
-	CommentId   *uuid.UUID `json:"commentId,omitempty"`
+	RiceID      *uuid.UUID `json:"riceId,omitempty"`
+	CommentID   *uuid.UUID `json:"commentId,omitempty"`
 	IsClosed    bool       `json:"isClosed"`
 	CreatedAt   time.Time  `json:"createdAt"`
 }
@@ -344,7 +354,6 @@ func ReportsToDTO(reports []ReportWithUser) []ReportWithUserDTO {
 	return dto
 }
 
-// Admin
 type ServiceStatisticsDTO struct {
 	UserCount       int `json:"userCount"`
 	User24hCount    int `json:"user24hCount"`
@@ -360,7 +369,6 @@ func (s ServiceStatistics) ToDTO() ServiceStatisticsDTO {
 	return ServiceStatisticsDTO(s)
 }
 
-// Website Variables
 type WebsiteVariableDTO struct {
 	Value     string    `json:"value"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -373,7 +381,6 @@ func (v WebsiteVariable) ToDTO() WebsiteVariableDTO {
 	}
 }
 
-// Links
 type LinkDTO struct {
 	URL string `json:"url"`
 }
@@ -382,4 +389,19 @@ func (link Link) ToDTO() LinkDTO {
 	return LinkDTO{
 		URL: link.URL,
 	}
+}
+
+type UserBanDTO struct {
+	ID        uuid.UUID  `json:"id"`
+	UserID    uuid.UUID  `json:"userId"`
+	AdminID   uuid.UUID  `json:"adminId"`
+	Reason    string     `json:"reason"`
+	IsRevoked bool       `json:"isRevoked"`
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	BannedAt  time.Time  `json:"bannedAt"`
+	RevokedAt *time.Time `json:"revokedAt,omitempty"`
+}
+
+func (b UserBan) ToDTO() UserBanDTO {
+	return UserBanDTO(b)
 }

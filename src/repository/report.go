@@ -26,8 +26,8 @@ WHERE r.id = $1
 `
 const setIsClosedSql = `UPDATE reports SET is_closed = $1 WHERE id = $2`
 
-func InsertReport(reporterId string, reason string, riceId *string, commentId *string) (id uuid.UUID, err error) {
-	err = db.QueryRow(context.Background(), insertReportSql, reporterId, reason, riceId, commentId).Scan(&id)
+func InsertReport(reporterID string, reason string, riceID *string, commentID *string) (id uuid.UUID, err error) {
+	err = db.QueryRow(context.Background(), insertReportSql, reporterID, reason, riceID, commentID).Scan(&id)
 	return
 }
 
@@ -36,12 +36,12 @@ func FetchReports() (r []models.ReportWithUser, err error) {
 	return
 }
 
-func FindReport(reportId string) (r models.ReportWithUser, err error) {
-	r, err = rowToStruct[models.ReportWithUser](findReportSql, reportId)
+func FindReport(reportID string) (r models.ReportWithUser, err error) {
+	r, err = rowToStruct[models.ReportWithUser](findReportSql, reportID)
 	return
 }
 
-func SetReportIsClosed(reportId string, newState bool) (bool, error) {
-	cmd, err := db.Exec(context.Background(), setIsClosedSql, newState, reportId)
+func SetReportIsClosed(reportID string, newState bool) (bool, error) {
+	cmd, err := db.Exec(context.Background(), setIsClosedSql, newState, reportID)
 	return cmd.RowsAffected() == 1, err
 }

@@ -28,12 +28,12 @@ import (
 var blacklistedTitle = errs.UserError("Title contains blacklisted words!", http.StatusUnprocessableEntity)
 var blacklistedDescription = errs.UserError("Description contains blacklisted words!", http.StatusUnprocessableEntity)
 
-func checkCanUserModifyRice(token *utils.AccessToken, riceId string) error {
+func checkCanUserModifyRice(token *utils.AccessToken, riceID string) error {
 	if token.IsAdmin {
 		return nil
 	}
 
-	isAuthor, err := repository.HasUserRiceWithId(riceId, token.Subject)
+	isAuthor, err := repository.HasUserRiceWithId(riceID, token.Subject)
 	if err != nil || !isAuthor {
 		return errs.NoAccess
 	}
@@ -50,21 +50,21 @@ func FetchRices(c *gin.Context) {
 		return
 	}
 
-	lastId := c.Query("lastId")
+	lastID := c.Query("lastId")
 	lastCreatedAt := c.Query("lastCreatedAt")
 	lastDownloads := c.Query("lastDownloads")
 
 	var pag repository.Pagination
-	useDefault := lastId == "" && lastCreatedAt == "" && lastDownloads == ""
+	useDefault := lastID == "" && lastCreatedAt == "" && lastDownloads == ""
 
-	if lastId != "" {
-		id, err := uuid.Parse(lastId)
+	if lastID != "" {
+		id, err := uuid.Parse(lastID)
 		if err != nil {
 			c.Error(errs.UserError("Failed to parse last id", http.StatusBadRequest))
 			return
 		}
 
-		pag.LastId = &id
+		pag.LastID = &id
 	}
 
 	if lastCreatedAt != "" {
@@ -89,24 +89,24 @@ func FetchRices(c *gin.Context) {
 
 	if useDefault {
 		pag.LastCreatedAt = time.Now().AddDate(999, 1, 1)
-		pag.LastId = nil
+		pag.LastID = nil
 		pag.LastDownloads = -1
 	}
 
 	rices := []models.PartialRice{}
 	var err error
 
-	userId := GetUserIdFromRequest(c)
+	userID := GetUserIdFromRequest(c)
 
 	switch sort {
 	case "trending":
-		rices, err = repository.FetchTrendingRices(&pag, userId)
+		rices, err = repository.FetchTrendingRices(&pag, userID)
 	case "recent":
-		rices, err = repository.FetchRecentRices(&pag, userId)
+		rices, err = repository.FetchRecentRices(&pag, userID)
 	case "mostDownloads":
-		rices, err = repository.FetchMostDownloadedRices(&pag, userId)
+		rices, err = repository.FetchMostDownloadedRices(&pag, userID)
 	case "mostStars":
-		rices, err = repository.FetchMostStarredRices(&pag, userId)
+		rices, err = repository.FetchMostStarredRices(&pag, userID)
 	}
 
 	if err != nil {
@@ -118,10 +118,10 @@ func FetchRices(c *gin.Context) {
 }
 
 func GetRiceById(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 
-	userId := GetUserIdFromRequest(c)
-	rice, err := repository.FindRiceById(userId, riceId)
+	userID := GetUserIdFromRequest(c)
+	rice, err := repository.FindRiceById(userID, riceID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			c.Error(errs.RiceNotFound)
@@ -136,9 +136,9 @@ func GetRiceById(c *gin.Context) {
 }
 
 func GetRiceComments(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 
-	comments, err := repository.FetchCommentsByRiceId(riceId)
+	comments, err := repository.FetchCommentsByRiceId(riceID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -148,9 +148,9 @@ func GetRiceComments(c *gin.Context) {
 }
 
 func DownloadDotfiles(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 
-	filePath, err := repository.IncrementDotfilesDownloads(riceId)
+	filePath, err := repository.IncrementDotfilesDownloads(riceID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			c.Error(errs.RiceNotFound)
@@ -259,7 +259,7 @@ func CreateRice(c *gin.Context) {
 	for path, file := range validPreviews {
 		c.SaveUploadedFile(file, "./public"+path)
 
-		if err := repository.InsertRicePreviewTx(tx, rice.Id, path); err != nil {
+		if err := repository.InsertRicePreviewTx(tx, rice.ID, path); err != nil {
 			c.Error(errs.InternalError(err))
 			return
 		}
@@ -272,7 +272,7 @@ func CreateRice(c *gin.Context) {
 	c.SaveUploadedFile(dotfilesFile, "./public"+dotfilesPath)
 
 	dotfilesSize := dotfilesFile.Size
-	dotfiles, err := repository.InsertRiceDotfiles(tx, rice.Id, dotfilesPath, dotfilesSize)
+	dotfiles, err := repository.InsertRiceDotfiles(tx, rice.ID, dotfilesPath, dotfilesSize)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -289,10 +289,10 @@ func CreateRice(c *gin.Context) {
 }
 
 func UpdateRiceMetadata(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := checkCanUserModifyRice(token, riceId); err != nil {
+	if err := checkCanUserModifyRice(token, riceID); err != nil {
 		c.Error(err)
 		return
 	}
@@ -321,7 +321,7 @@ func UpdateRiceMetadata(c *gin.Context) {
 		}
 	}
 
-	rice, err := repository.UpdateRice(riceId, metadata.Title, metadata.Description)
+	rice, err := repository.UpdateRice(riceID, metadata.Title, metadata.Description)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -331,10 +331,10 @@ func UpdateRiceMetadata(c *gin.Context) {
 }
 
 func UpdateDotfiles(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := checkCanUserModifyRice(token, riceId); err != nil {
+	if err := checkCanUserModifyRice(token, riceID); err != nil {
 		c.Error(err)
 		return
 	}
@@ -352,7 +352,7 @@ func UpdateDotfiles(c *gin.Context) {
 	}
 
 	// delete old dotfiles (if exist)
-	oldDotfiles, err := repository.FetchRiceDotfilesPath(riceId)
+	oldDotfiles, err := repository.FetchRiceDotfilesPath(riceID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -368,7 +368,7 @@ func UpdateDotfiles(c *gin.Context) {
 	c.SaveUploadedFile(file, "./public"+path)
 
 	fileSize := file.Size
-	df, err := repository.UpdateRiceDotfiles(riceId, path, fileSize)
+	df, err := repository.UpdateRiceDotfiles(riceID, path, fileSize)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -378,7 +378,7 @@ func UpdateDotfiles(c *gin.Context) {
 }
 
 func AddPreview(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -392,7 +392,7 @@ func AddPreview(c *gin.Context) {
 		return
 	}
 
-	count, err := repository.RicePreviewCount(riceId)
+	count, err := repository.RicePreviewCount(riceID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -405,7 +405,7 @@ func AddPreview(c *gin.Context) {
 	path := fmt.Sprintf("/previews/%v%v", uuid.New(), ext)
 	c.SaveUploadedFile(file, "./public"+path)
 
-	_, err = repository.InsertRicePreview(riceId, path)
+	_, err = repository.InsertRicePreview(riceID, path)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -415,17 +415,17 @@ func AddPreview(c *gin.Context) {
 }
 
 func DeletePreview(c *gin.Context) {
-	riceId := c.Param("id")
-	previewId := c.Param("previewId")
+	riceID := c.Param("id")
+	previewID := c.Param("previewId")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := checkCanUserModifyRice(token, riceId); err != nil {
+	if err := checkCanUserModifyRice(token, riceID); err != nil {
 		c.Error(err)
 		return
 	}
 
 	// check if there's at least one preview before deleting
-	count, err := repository.FetchRicePreviewCount(riceId)
+	count, err := repository.FetchRicePreviewCount(riceID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -435,7 +435,7 @@ func DeletePreview(c *gin.Context) {
 		return
 	}
 
-	deleted, err := repository.DeleteRicePreview(riceId, previewId)
+	deleted, err := repository.DeleteRicePreview(riceID, previewID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -449,10 +449,10 @@ func DeletePreview(c *gin.Context) {
 }
 
 func AddRiceStar(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := repository.InsertRiceStar(riceId, token.Subject); err != nil {
+	if err := repository.InsertRiceStar(riceID, token.Subject); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -473,10 +473,10 @@ func AddRiceStar(c *gin.Context) {
 }
 
 func DeleteRiceStar(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := repository.DeleteRiceStar(riceId, token.Subject); err != nil {
+	if err := repository.DeleteRiceStar(riceID, token.Subject); err != nil {
 		c.Error(errs.InternalError(err))
 		return
 	}
@@ -485,15 +485,15 @@ func DeleteRiceStar(c *gin.Context) {
 }
 
 func DeleteRice(c *gin.Context) {
-	riceId := c.Param("id")
+	riceID := c.Param("id")
 	token := c.MustGet("token").(*utils.AccessToken)
 
-	if err := checkCanUserModifyRice(token, riceId); err != nil {
+	if err := checkCanUserModifyRice(token, riceID); err != nil {
 		c.Error(err)
 		return
 	}
 
-	deleted, err := repository.DeleteRice(riceId)
+	deleted, err := repository.DeleteRice(riceID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return

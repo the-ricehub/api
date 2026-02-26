@@ -27,8 +27,8 @@ func FetchReports(c *gin.Context) {
 }
 
 func GetReportById(c *gin.Context) {
-	reportId := c.Param("reportId")
-	report, err := repository.FindReport(reportId)
+	reportID := c.Param("reportId")
+	report, err := repository.FindReport(reportID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			c.Error(reportNotFound)
@@ -51,12 +51,12 @@ func CreateReport(c *gin.Context) {
 		return
 	}
 
-	if report.RiceId != nil && report.CommentId != nil {
+	if report.RiceID != nil && report.CommentID != nil {
 		c.Error(errs.UserError("Too many resources provided! You can only report one thing at a time.", http.StatusBadRequest))
 		return
 	}
 
-	reportId, err := repository.InsertReport(token.Subject, report.Reason, report.RiceId, report.CommentId)
+	reportId, err := repository.InsertReport(token.Subject, report.Reason, report.RiceID, report.CommentID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -78,9 +78,9 @@ func CreateReport(c *gin.Context) {
 }
 
 func CloseReport(c *gin.Context) {
-	reportId := c.Param("reportId")
+	reportID := c.Param("reportId")
 
-	updated, err := repository.SetReportIsClosed(reportId, true)
+	updated, err := repository.SetReportIsClosed(reportID, true)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return

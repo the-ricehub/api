@@ -83,16 +83,16 @@ func LoggerMiddleware(logger *zap.Logger) gin.HandlerFunc {
 }
 
 func getClientId(c *gin.Context) string {
-	clientId := c.RemoteIP()
+	clientID := c.RemoteIP()
 
 	// try to extract access token from headers
 	tokenStr := strings.TrimSpace(c.GetHeader("Authorization"))
 	token, err := ValidateToken(tokenStr)
 	if err == nil {
-		clientId = token.Subject
+		clientID = token.Subject
 	}
 
-	return clientId
+	return clientID
 }
 
 func RateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.HandlerFunc {
@@ -103,12 +103,12 @@ func RateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.Handle
 	)
 
 	return func(c *gin.Context) {
-		clientId := getClientId(c)
+		clientID := getClientId(c)
 
-		count, err := IncrementRateLimit(clientId, resetAfter)
+		count, err := IncrementRateLimit(clientID, resetAfter)
 		if err != nil {
 			logger.Error("Failed to increment rate limit for client",
-				zap.String("client_id", clientId),
+				zap.String("client_id", clientID),
 				zap.Error(err),
 			)
 		}
@@ -132,14 +132,14 @@ func PathRateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.Ha
 			return
 		}
 
-		clientId := getClientId(c)
+		clientID := getClientId(c)
 		path := c.Request.URL.Path
 
-		count, err := IncrementPathRateLimit(path, clientId, resetAfter)
+		count, err := IncrementPathRateLimit(path, clientID, resetAfter)
 		if err != nil {
 			logger.Error("Failed to increment path rate limit for client",
 				zap.String("path", path),
-				zap.String("client_id", clientId),
+				zap.String("client_id", clientID),
 				zap.Error(err),
 			)
 		}

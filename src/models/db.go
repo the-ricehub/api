@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	Id          uuid.UUID
+	ID          uuid.UUID
 	Username    string
 	DisplayName string `json:"display_name"`
 	Password    string
@@ -18,7 +18,7 @@ type User struct {
 }
 
 type Tag struct {
-	Id        int
+	ID        int
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -27,8 +27,8 @@ type Tag struct {
 // some fields contain json struct tag
 // because we're querying it as JSONB
 type Rice struct {
-	Id          uuid.UUID
-	AuthorId    uuid.UUID `json:"author_id"`
+	ID          uuid.UUID
+	AuthorID    uuid.UUID `json:"author_id"`
 	Title       string
 	Slug        string
 	Description string
@@ -37,7 +37,7 @@ type Rice struct {
 }
 
 type RiceDotfiles struct {
-	RiceId        uuid.UUID `json:"rice_id"`
+	RiceID        uuid.UUID `json:"rice_id"`
 	FilePath      string    `json:"file_path"`
 	FileSize      int64     `json:"file_size"`
 	DownloadCount uint      `json:"download_count"`
@@ -46,25 +46,25 @@ type RiceDotfiles struct {
 }
 
 type RicePreview struct {
-	Id        uuid.UUID
-	RiceId    uuid.UUID `json:"rice_id"`
+	ID        uuid.UUID
+	RiceID    uuid.UUID `json:"rice_id"`
 	FilePath  string    `json:"file_path"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type RiceComment struct {
-	Id        uuid.UUID
-	RiceId    uuid.UUID
-	AuthorId  uuid.UUID
+	ID        uuid.UUID
+	RiceID    uuid.UUID
+	AuthorID  uuid.UUID
 	Content   string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type RiceCommentWithSlug struct {
-	Id                 uuid.UUID
-	RiceId             uuid.UUID
-	AuthorId           uuid.UUID
+	ID                 uuid.UUID
+	RiceID             uuid.UUID
+	AuthorID           uuid.UUID
 	Content            string
 	RiceSlug           string
 	RiceAuthorUsername string
@@ -73,7 +73,7 @@ type RiceCommentWithSlug struct {
 }
 
 type CommentWithUser struct {
-	CommentId   uuid.UUID
+	CommentID   uuid.UUID
 	Content     string
 	DisplayName string
 	Username    string
@@ -92,7 +92,7 @@ type RiceWithRelations struct {
 }
 
 type PartialRice struct {
-	Id            uuid.UUID
+	ID            uuid.UUID
 	Title         string
 	Slug          string
 	DisplayName   string
@@ -105,13 +105,13 @@ type PartialRice struct {
 }
 
 type ReportWithUser struct {
-	Id          uuid.UUID
-	ReporterId  uuid.UUID
+	ID          uuid.UUID
+	ReporterID  uuid.UUID
 	DisplayName string
 	Username    string
 	Reason      string
-	RiceId      *uuid.UUID
-	CommentId   *uuid.UUID
+	RiceID      *uuid.UUID
+	CommentID   *uuid.UUID
 	IsClosed    bool
 	CreatedAt   time.Time
 }
@@ -139,4 +139,20 @@ type Link struct {
 	URL       string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type UserState struct {
+	UserExists bool
+	UserBanned bool
+}
+
+type UserBan struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	AdminID   uuid.UUID
+	Reason    string
+	IsRevoked bool
+	ExpiresAt *time.Time
+	BannedAt  time.Time
+	RevokedAt *time.Time
 }

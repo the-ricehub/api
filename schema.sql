@@ -119,15 +119,12 @@ CREATE TRIGGER update_rice_comments_updated_at
     BEFORE UPDATE ON rice_comments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- insert test data
 INSERT INTO tags (name)
 VALUES ('AwesomeWM'), ('Arch Linux'), ('KDE'), ('Hyprland'), ('i3'), ('bspwm');
 
--- add dotfiles size column
 ALTER TABLE rice_dotfiles
 ADD COLUMN file_size BIGINT NOT NULL CHECK (file_size > 0);
 
--- tables related to website
 CREATE TABLE website_variables (
     key TEXT PRIMARY KEY CHECK (key ~ '^[a-z0-9_]+$'),
     value TEXT NOT NULL,
@@ -150,7 +147,6 @@ CREATE TRIGGER update_links_updated_at
     BEFORE UPDATE ON links
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- default values
 INSERT INTO website_variables (key, value)
 VALUES
     ('terms_of_service_text', 'Lorem ipsum'),
@@ -160,3 +156,30 @@ INSERT INTO links (name, url)
 VALUES
     ('discord', 'https://discord.com'),
     ('github', 'https://github.com');
+
+CREATE TABLE user_bans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    admin_id UUID REFERENCES users(id) CHECK (admin_id != user_id),
+    reason TEXT NOT NULL,
+    is_revoked BOOL NOT NULL DEFAULT false,
+    expires_at TIMESTAMPTZ,
+    banned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ,
+);
+
+CREATE OR REPLACE FUNCTION update_revoked_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.is_revoked IS true THEN
+        NEW.revoked_at = NOW();
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql'; 
+
+-- update `revoked_at` column in `user_bans` if ban is revoked
+CREATE TRIGGER update_user_ban_revoked_at
+    BEFORE UPDATE OF is_revoked ON user_bans
+    FOR EACH ROW EXECUTE FUNCTION update_revoked_at();

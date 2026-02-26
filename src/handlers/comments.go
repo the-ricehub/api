@@ -14,12 +14,12 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func checkCanUserModifyComment(token *utils.AccessToken, commentId string) error {
+func checkCanUserModifyComment(token *utils.AccessToken, commentID string) error {
 	if token.IsAdmin {
 		return nil
 	}
 
-	isAuthor, err := repository.HasUserCommentWithId(commentId, token.Subject)
+	isAuthor, err := repository.HasUserCommentWithId(commentID, token.Subject)
 	if err != nil || !isAuthor {
 		return errs.NoAccess
 	}
@@ -36,7 +36,7 @@ func AddComment(c *gin.Context) {
 		return
 	}
 
-	comment, err := repository.InsertComment(body.RiceId, token.Subject, body.Content)
+	comment, err := repository.InsertComment(body.RiceID, token.Subject, body.Content)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.ForeignKeyViolation {
@@ -68,9 +68,9 @@ func GetRecentComments(c *gin.Context) {
 }
 
 func GetCommentById(c *gin.Context) {
-	commentId := c.Param("id")
+	commentID := c.Param("id")
 
-	comment, err := repository.FindCommentById(commentId)
+	comment, err := repository.FindCommentById(commentID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			c.Error(errs.UserError("Comment with provided ID not found", http.StatusNotFound))
@@ -86,7 +86,7 @@ func GetCommentById(c *gin.Context) {
 
 func UpdateComment(c *gin.Context) {
 	token := c.MustGet("token").(*utils.AccessToken)
-	commentId := c.Param("id")
+	commentID := c.Param("id")
 
 	var update models.UpdateCommentDTO
 	if err := utils.ValidateJSON(c, &update); err != nil {
@@ -94,12 +94,12 @@ func UpdateComment(c *gin.Context) {
 		return
 	}
 
-	if err := checkCanUserModifyComment(token, commentId); err != nil {
+	if err := checkCanUserModifyComment(token, commentID); err != nil {
 		c.Error(err)
 		return
 	}
 
-	comment, err := repository.UpdateComment(commentId, update.Content)
+	comment, err := repository.UpdateComment(commentID, update.Content)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -110,14 +110,14 @@ func UpdateComment(c *gin.Context) {
 
 func DeleteComment(c *gin.Context) {
 	token := c.MustGet("token").(*utils.AccessToken)
-	commentId := c.Param("id")
+	commentID := c.Param("id")
 
-	if err := checkCanUserModifyComment(token, commentId); err != nil {
+	if err := checkCanUserModifyComment(token, commentID); err != nil {
 		c.Error(err)
 		return
 	}
 
-	if err := repository.DeleteComment(commentId); err != nil {
+	if err := repository.DeleteComment(commentID); err != nil {
 		c.Error(errs.InternalError(err))
 		return
 	}

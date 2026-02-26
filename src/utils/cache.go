@@ -70,12 +70,12 @@ func increment(key string, expireAfter time.Duration) (int64, error) {
 	return count, err
 }
 
-func IncrementRateLimit(clientId string, expireAfter time.Duration) (int64, error) {
-	key := fmt.Sprintf("rateLimit:%s", clientId)
+func IncrementRateLimit(clientID string, expireAfter time.Duration) (int64, error) {
+	key := fmt.Sprintf("rateLimit:%s", clientID)
 	return increment(key, expireAfter)
 }
 
-func IncrementPathRateLimit(path string, clientId string, expireAfter time.Duration) (int64, error) {
-	key := fmt.Sprintf("pathRateLimit:%s-%s", path, clientId)
+func IncrementPathRateLimit(path string, clientID string, expireAfter time.Duration) (int64, error) {
+	key := fmt.Sprintf("pathRateLimit:%s-%s", path, clientID)
 	return increment(key, expireAfter)
 }

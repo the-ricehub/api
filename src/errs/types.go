@@ -39,6 +39,6 @@ func UserErrors(messages []string, code int) *AppError {
 
 // common errors that are re-used in different places in the codebase
 var NoAccess = UserError("You don't have access to this resource", http.StatusForbidden)
-var RiceNotFound = UserError("Rice with provided ID not found", http.StatusNotFound)
+var RiceNotFound = UserError("Rice not found", http.StatusNotFound)
 var MissingFile = UserError("Required file is missing", http.StatusBadRequest)
 var BlacklistedDisplayName = UserError("You can't use this display name! Please try again with a different one.", http.StatusUnprocessableEntity)

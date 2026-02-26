@@ -49,14 +49,14 @@ DELETE FROM rice_comments
 WHERE id = $1
 `
 
-func InsertComment(riceId string, authorId string, content string) (c models.RiceComment, err error) {
-	c, err = rowToStruct[models.RiceComment](insertCommentSql, riceId, authorId, content)
+func InsertComment(riceID string, authorID string, content string) (c models.RiceComment, err error) {
+	c, err = rowToStruct[models.RiceComment](insertCommentSql, riceID, authorID, content)
 	return
 }
 
-func HasUserCommentWithId(commentId string, userId string) (bool, error) {
+func HasUserCommentWithId(commentID string, userID string) (bool, error) {
 	var exists bool
-	err := db.QueryRow(context.Background(), hasUserCommentSql, commentId, userId).Scan(&exists)
+	err := db.QueryRow(context.Background(), hasUserCommentSql, commentID, userID).Scan(&exists)
 	return exists, err
 }
 
@@ -65,22 +65,22 @@ func FetchRecentComments(limit int64) (c []models.CommentWithUser, err error) {
 	return
 }
 
-func FetchCommentsByRiceId(riceId string) (c []models.CommentWithUser, err error) {
-	c, err = rowsToStruct[models.CommentWithUser](riceCommentsSql, riceId)
+func FetchCommentsByRiceId(riceID string) (c []models.CommentWithUser, err error) {
+	c, err = rowsToStruct[models.CommentWithUser](riceCommentsSql, riceID)
 	return
 }
 
-func FindCommentById(commentId string) (c models.RiceCommentWithSlug, err error) {
-	c, err = rowToStruct[models.RiceCommentWithSlug](findCommentByIdSql, commentId)
+func FindCommentById(commentID string) (c models.RiceCommentWithSlug, err error) {
+	c, err = rowToStruct[models.RiceCommentWithSlug](findCommentByIdSql, commentID)
 	return
 }
 
-func UpdateComment(commentId string, content string) (c models.RiceComment, err error) {
-	c, err = rowToStruct[models.RiceComment](updateCommentSql, content, commentId)
+func UpdateComment(commentID string, content string) (c models.RiceComment, err error) {
+	c, err = rowToStruct[models.RiceComment](updateCommentSql, content, commentID)
 	return
 }
 
-func DeleteComment(commentId string) error {
-	_, err := db.Exec(context.Background(), deleteCommentSql, commentId)
+func DeleteComment(commentID string) error {
+	_, err := db.Exec(context.Background(), deleteCommentSql, commentID)
 	return err
 }

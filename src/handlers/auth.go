@@ -99,13 +99,13 @@ func Login(c *gin.Context) {
 	}
 
 	// create tokens
-	refresh, err := utils.NewRefreshToken(user.Id)
+	refresh, err := utils.NewRefreshToken(user.ID)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
 	}
 
-	access, err := utils.NewAccessToken(user.Id, user.IsAdmin)
+	access, err := utils.NewAccessToken(user.ID, user.IsAdmin)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return
@@ -145,12 +145,17 @@ func RefreshToken(c *gin.Context) {
 	// check user data from database
 	user, err := repository.FindUserById(refresh.Subject)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.Error(errs.UserError("Invalid refresh token! Log out and try again.", http.StatusForbidden))
+			return
+		}
+
 		c.Error(errs.InternalError(err))
 		return
 	}
 
 	// generate access token
-	access, err := utils.NewAccessToken(user.Id, user.IsAdmin)
+	access, err := utils.NewAccessToken(user.ID, user.IsAdmin)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return

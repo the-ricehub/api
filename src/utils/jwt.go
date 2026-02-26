@@ -95,12 +95,12 @@ func InitJWT(keysDir string) {
 	logger.Info("JWT key pairs successfully loaded")
 }
 
-func NewAccessToken(userId uuid.UUID, isAdmin bool) (token string, err error) {
+func NewAccessToken(userID uuid.UUID, isAdmin bool) (token string, err error) {
 	exp := time.Now().Add(Config.JWT.AccessExpiration)
 	claims := AccessToken{
 		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   userId.String(),
+			Subject:   userID.String(),
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
 	}
@@ -108,11 +108,11 @@ func NewAccessToken(userId uuid.UUID, isAdmin bool) (token string, err error) {
 	return
 }
 
-func NewRefreshToken(userId uuid.UUID) (token string, err error) {
+func NewRefreshToken(userID uuid.UUID) (token string, err error) {
 	exp := time.Now().Add(Config.JWT.RefreshExpiration)
 	claims := RefreshToken{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   userId.String(),
+			Subject:   userID.String(),
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},
 	}

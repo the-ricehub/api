@@ -135,6 +135,10 @@ func setupRoutes(r *gin.Engine) {
 		authedOnly.PATCH("/:id/password", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UpdatePassword)
 		authedOnly.POST("/:id/avatar", utils.MaintenanceMiddleware(), utils.FileSizeLimitMiddleware(utils.Config.Limits.UserAvatarSizeLimit), utils.PathRateLimitMiddleware(5, 24*time.Hour), handlers.UploadAvatar)
 		authedOnly.DELETE("/:id/avatar", utils.MaintenanceMiddleware(), utils.PathRateLimitMiddleware(10, 24*time.Hour), handlers.DeleteAvatar)
+
+		adminOnly := users.Use(utils.AdminMiddleware)
+		adminOnly.POST("/:id/ban", handlers.BanUser)
+		adminOnly.DELETE("/:id/ban", handlers.UnbanUser)
 	}
 
 	tags := r.Group("/tags")
