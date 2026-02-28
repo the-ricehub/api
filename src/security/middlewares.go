@@ -104,6 +104,14 @@ func getClientId(c *gin.Context) string {
 	return clientID
 }
 
+// Checks whether request caller is an admin without throwing any errors
+func isAdmin(c *gin.Context) bool {
+	tokenStr := c.Request.Header.Get("Authorization")
+	tokenStr = strings.TrimSpace(tokenStr)
+	token, err := ValidateToken(tokenStr)
+	return err == nil && token.IsAdmin
+}
+
 func RateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.HandlerFunc {
 	logger := zap.L()
 	logger.Info("Creating a rate limit middleware",
@@ -112,6 +120,11 @@ func RateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.Handle
 	)
 
 	return func(c *gin.Context) {
+		if isAdmin(c) {
+			c.Next()
+			return
+		}
+
 		clientID := getClientId(c)
 
 		count, err := utils.IncrementRateLimit(clientID, resetAfter)
@@ -136,7 +149,7 @@ func PathRateLimitMiddleware(maxRequests int64, resetAfter time.Duration) gin.Ha
 	logger := zap.L()
 
 	return func(c *gin.Context) {
-		if utils.Config.DisableRateLimits {
+		if utils.Config.DisableRateLimits || isAdmin(c) {
 			c.Next()
 			return
 		}
