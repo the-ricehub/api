@@ -44,6 +44,26 @@ type UpdateUserBanDTO struct {
 	Duration *string `json:"duration" binding:"omitempty"`
 }
 
+type UserWithBanDTO struct {
+	User UserDTO    `json:"user"`
+	Ban  UserBanDTO `json:"ban"`
+}
+
+func (u UserWithBan) ToDTO() UserWithBanDTO {
+	return UserWithBanDTO{
+		User: u.User.ToDTO(),
+		Ban:  u.Ban.ToDTO(),
+	}
+}
+
+func UsersWithBanToDTO(users []UserWithBan) []UserWithBanDTO {
+	arr := make([]UserWithBanDTO, len(users))
+	for i, user := range users {
+		arr[i] = user.ToDTO()
+	}
+	return arr
+}
+
 // TAGS
 type TagNameDTO struct {
 	Name string `json:"name" binding:"required,min=2,max=16,alpha,ascii"`

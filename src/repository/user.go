@@ -46,7 +46,7 @@ func InsertUser(username string, displayName string, password string) error {
 	return nil
 }
 
-func FetchRecentUsers(limit int64) (users []models.User, err error) {
+func FetchRecentUsers(limit int) (users []models.User, err error) {
 	const sql = `
 	SELECT *
 	FROM users_with_ban_status
@@ -56,6 +56,31 @@ func FetchRecentUsers(limit int64) (users []models.User, err error) {
 
 	users, err = rowsToStruct[models.User](sql, limit)
 	return
+}
+
+// Fetches all banned users with ban data and orders it from recent ban
+func FetchBannedUsers() ([]models.UserWithBan, error) {
+	// const query = `
+	// SELECT
+	// 	to_jsonb(u) AS "user",
+	// 	to_jsonb(b) AS "ban"
+	// FROM users u
+	// JOIN user_bans b ON b.user_id = u.id
+	// WHERE (b.expires_at > NOW() OR b.expires_at IS NULL) AND b.is_revoked = false
+	// ORDER BY b.banned_at DESC
+	// `
+	const query = `
+	SELECT DISTINCT ON (u.id)
+		to_jsonb(u) AS "user",
+		to_jsonb(b) AS "ban"
+	FROM users_with_ban_status u
+	JOIN user_bans b ON b.user_id = u.id
+	WHERE
+		u.is_banned = true
+	ORDER BY u.id, b.banned_at DESC
+	`
+
+	return rowsToStruct[models.UserWithBan](query)
 }
 
 func FindUserByUsername(username string) (*models.User, error) {

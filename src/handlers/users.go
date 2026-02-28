@@ -27,6 +27,7 @@ type usersPath struct {
 }
 
 var invalidUserID = errs.UserError("Invalid user ID provided. It must be a valid UUID.", http.StatusBadRequest)
+var queryRequired = errs.UserError("At least one query parameter is required", http.StatusBadRequest)
 
 func findUser(userID string) (*models.User, error) {
 	user, err := repository.FindUserById(userID)
@@ -83,48 +84,7 @@ func GetUserIdFromRequest(c *gin.Context) *string {
 	return userID
 }
 
-func FetchUsers(c *gin.Context) {
-	// is it needed?
-	// with profiles now being a separate resource its not used anywhere
-	// I'll remove it in later commits if it does not change
-	username := c.Query("username")
-	if username != "" {
-		user, err := repository.FindUserByUsername(username)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				c.Error(errs.UserError("User with provided username does not exist", http.StatusNotFound))
-				return
-			}
-
-			c.Error(errs.InternalError(err))
-			return
-		}
-
-		c.JSON(http.StatusOK, user.ToDTO())
-		return
-	}
-
-	// check if user is an admin
-	tokenStr := c.Request.Header.Get("Authorization")
-	tokenStr = strings.TrimSpace(tokenStr)
-
-	token, err := security.ValidateToken(tokenStr)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	if !token.IsAdmin {
-		c.Error(errs.UserError("Username query parameter is required", http.StatusBadRequest))
-		return
-	}
-
-	limit, err := utils.ParseLimitQuery(c)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
+func fetchRecentUsers(c *gin.Context, limit int) {
 	users, err := repository.FetchRecentUsers(limit)
 	if err != nil {
 		c.Error(errs.InternalError(err))
@@ -132,6 +92,97 @@ func FetchUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.UsersToDTOs(users))
+}
+
+func fetchBannedUsers(c *gin.Context) {
+	users, err := repository.FetchBannedUsers()
+	if err != nil {
+
+	}
+
+	c.JSON(http.StatusOK, models.UsersWithBanToDTO(users))
+}
+
+func findUserByUsername(c *gin.Context, username string) {
+	user, err := repository.FindUserByUsername(username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.Error(errs.UserNotFound)
+			return
+		}
+
+		c.Error(errs.InternalError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, user.ToDTO())
+}
+
+func checkIsAdmin(header http.Header) error {
+	tokenStr := header.Get("Authorization")
+	tokenStr = strings.TrimSpace(tokenStr)
+
+	token, err := security.ValidateToken(tokenStr)
+	if err != nil {
+		return err
+	}
+
+	if !token.IsAdmin {
+		return queryRequired
+	}
+
+	return nil
+}
+
+func FetchUsers(c *gin.Context) {
+	var query struct {
+		Status   string `form:"status"`
+		Username string `form:"username"`
+		Limit    int    `form:"limit,default=-1"`
+	}
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.Error(
+			errs.UserError(
+				fmt.Sprintf("Failed to parse query parameters: %v", err.Error()),
+				http.StatusBadRequest,
+			),
+		)
+		return
+	}
+
+	byStatus := query.Status != ""
+	byUsername := query.Username != ""
+
+	// fetch by username
+	if byUsername {
+		findUserByUsername(c, query.Username)
+		return
+	}
+
+	// make sure the caller is an admin
+	if err := checkIsAdmin(c.Request.Header); err != nil {
+		c.Error(err)
+		return
+	}
+
+	// fetch by status
+	if byStatus {
+		if query.Status != "banned" {
+			c.Error(errs.UserError("Only filtering by status = `banned` is supported", http.StatusBadRequest))
+			return
+		}
+
+		fetchBannedUsers(c)
+		return
+	}
+
+	// fetch list of recent users
+	// use default value of 20 for incorrect limit
+	if query.Limit <= 0 {
+		query.Limit = 20
+	}
+
+	fetchRecentUsers(c, query.Limit)
 }
 
 func GetUserById(c *gin.Context) {

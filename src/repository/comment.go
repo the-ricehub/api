@@ -60,7 +60,7 @@ func HasUserCommentWithId(commentID string, userID string) (bool, error) {
 	return exists, err
 }
 
-func FetchRecentComments(limit int64) (c []models.CommentWithUser, err error) {
+func FetchRecentComments(limit int) (c []models.CommentWithUser, err error) {
 	c, err = rowsToStruct[models.CommentWithUser](fetchRecentCommentsSql, limit)
 	return
 }

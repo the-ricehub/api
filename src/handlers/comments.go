@@ -63,13 +63,15 @@ func AddComment(c *gin.Context) {
 }
 
 func GetRecentComments(c *gin.Context) {
-	limit, err := utils.ParseLimitQuery(c)
-	if err != nil {
-		c.Error(err)
+	var query struct {
+		Limit int `form:"limit,default=20"`
+	}
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.Error(errs.UserError("Failed to parse limit query parameter", http.StatusBadRequest))
 		return
 	}
 
-	comments, err := repository.FetchRecentComments(limit)
+	comments, err := repository.FetchRecentComments(query.Limit)
 	if err != nil {
 		c.Error(errs.InternalError(err))
 		return

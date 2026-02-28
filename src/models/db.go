@@ -18,6 +18,11 @@ type User struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type UserWithBan struct {
+	User User
+	Ban  UserBan
+}
+
 type Tag struct {
 	ID        int
 	Name      string
@@ -150,11 +155,11 @@ type UserState struct {
 
 type UserBan struct {
 	ID        uuid.UUID
-	UserID    uuid.UUID
-	AdminID   uuid.UUID
+	UserID    uuid.UUID `json:"user_id"`
+	AdminID   uuid.UUID `json:"admin_id"`
 	Reason    string
-	IsRevoked bool
-	ExpiresAt *time.Time
-	BannedAt  time.Time
-	RevokedAt *time.Time
+	IsRevoked bool       `json:"is_revoked"`
+	ExpiresAt *time.Time `json:"expires_at"`
+	BannedAt  time.Time  `json:"banned_at"`
+	RevokedAt *time.Time `json:"revoked_at"`
 }
