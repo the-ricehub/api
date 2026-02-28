@@ -125,3 +125,45 @@ func ValidateFileAsArchive(formFile *multipart.FileHeader) (string, error) {
 
 	return mtype.Extension(), nil
 }
+
+// case-insensitive version of strings.Contains
+func containsI(text string, substr string) bool {
+	return strings.Contains(
+		strings.ToLower(text),
+		strings.ToLower(substr),
+	)
+}
+
+func IsUsernameBlacklisted(username string) bool {
+	bl := Config.Blacklist
+
+	// check for exact matches
+	exact := append(bl.DisplayNames, bl.Usernames...)
+	for _, word := range exact {
+		if strings.EqualFold(word, username) {
+			return true
+		}
+	}
+
+	// check if contains
+	for _, word := range bl.Words {
+		if containsI(username, word) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IsDisplayNameBlacklisted(displayName string) bool {
+	bl := Config.Blacklist
+
+	contains := append(bl.Words, bl.DisplayNames...)
+	for _, word := range contains {
+		if containsI(displayName, word) {
+			return true
+		}
+	}
+
+	return false
+}

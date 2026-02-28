@@ -22,9 +22,13 @@ access_exp = "1m"
 refresh_exp = "168h"
 
 [blacklist]
-# user's username and display name gets checked against both `words` and `usernames`
-# however rice's description and title is checked only against `words`
-# as to not restrict use of words that could be useful in some cases
+# these three arrays are used in different places for different things:
+# [SYNTAX] where: how
+# rice title: contains words[]
+# rice description: contains words[]
+# user's display name: contains words[], display_names[]
+# username: exact usernames[], display_names[] + contains words[]
 
 words = [ "bad" ]
+display_names = [ "Bad User" ]
 usernames = [ "admin", "moderator" ]

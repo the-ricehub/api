@@ -35,8 +35,9 @@ type (
 	}
 
 	blacklistConfig struct {
-		Words     []string
-		Usernames []string
+		Words        []string
+		DisplayNames []string
+		Usernames    []string
 	}
 )
 

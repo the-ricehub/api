@@ -9,7 +9,6 @@ import (
 	"ricehub/src/repository"
 	"ricehub/src/security"
 	"ricehub/src/utils"
-	"strings"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
@@ -26,18 +25,15 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// check if username or display name contain blacklisted words
-	blacklist := append(utils.Config.Blacklist.Words, utils.Config.Blacklist.Usernames[:]...)
-	for _, word := range blacklist {
-		if strings.Contains(strings.ToLower(credentials.Username), word) {
-			c.Error(errs.UserError("You can't use this username! Please try again with a different one.", http.StatusUnprocessableEntity))
-			return
-		}
+	// check if username or display name contains blacklisted words
+	if utils.IsUsernameBlacklisted(credentials.Username) {
+		c.Error(errs.UserError("You can't use this username! Please try again with a different one.", http.StatusUnprocessableEntity))
+		return
+	}
 
-		if strings.Contains(strings.ToLower(credentials.DisplayName), word) {
-			c.Error(errs.BlacklistedDisplayName)
-			return
-		}
+	if utils.IsDisplayNameBlacklisted(credentials.DisplayName) {
+		c.Error(errs.BlacklistedDisplayName)
+		return
 	}
 
 	// check if username is taken

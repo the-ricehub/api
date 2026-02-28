@@ -280,12 +280,9 @@ func UpdateDisplayName(c *gin.Context) {
 	}
 
 	// check if display name is blacklisted
-	blacklist := append(utils.Config.Blacklist.Words, utils.Config.Blacklist.Usernames[:]...)
-	for _, word := range blacklist {
-		if strings.Contains(strings.ToLower(body.DisplayName), word) {
-			c.Error(errs.BlacklistedDisplayName)
-			return
-		}
+	if utils.IsDisplayNameBlacklisted(body.DisplayName) {
+		c.Error(errs.BlacklistedDisplayName)
+		return
 	}
 
 	err = repository.UpdateUserDisplayName(path.UserID, body.DisplayName)
