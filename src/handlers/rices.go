@@ -49,17 +49,6 @@ func checkCanUserModifyRice(token *security.AccessToken, riceID string) error {
 	return nil
 }
 
-// Tries to safely extract access token from request. Nothing happens if its unable to do so.
-func getTokenFromRequest(c *gin.Context) *security.AccessToken {
-	tokenStr := c.Request.Header.Get("Authorization")
-	tokenStr = strings.TrimSpace(tokenStr)
-	token, err := security.ValidateToken(tokenStr)
-	if err == nil {
-		return token
-	}
-	return nil
-}
-
 func fetchWaitingRices(c *gin.Context) {
 	rices, err := repository.FetchWaitingRices()
 	if err != nil {
@@ -71,7 +60,7 @@ func fetchWaitingRices(c *gin.Context) {
 }
 
 func FetchRices(c *gin.Context) {
-	token := getTokenFromRequest(c)
+	token := GetTokenFromRequest(c)
 	isAdmin := token != nil && token.IsAdmin
 
 	state := c.Query("state")
@@ -164,7 +153,12 @@ func GetRiceById(c *gin.Context) {
 		return
 	}
 
-	userID := GetUserIdFromRequest(c)
+	token := GetTokenFromRequest(c)
+	var userID *string = nil
+	if token != nil {
+		userID = &token.Subject
+	}
+
 	rice, err := repository.FindRiceById(userID, path.RiceID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -173,6 +167,11 @@ func GetRiceById(c *gin.Context) {
 		}
 
 		c.Error(errs.InternalError(err))
+		return
+	}
+
+	if rice.Rice.State == models.Waiting && (token == nil || !token.IsAdmin) {
+		c.Error(errs.RiceNotFound)
 		return
 	}
 

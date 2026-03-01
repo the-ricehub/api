@@ -118,7 +118,7 @@ func setupRoutes(r *gin.Engine) {
 	{
 		auth.POST("/register", security.MaintenanceMiddleware(), handlers.Register)
 		auth.POST("/login", handlers.Login)
-		auth.POST("/refresh", security.PathRateLimitMiddleware(5, 1*time.Minute), handlers.RefreshToken)
+		auth.POST("/refresh", security.PathRateLimitMiddleware(100, 1*time.Minute), handlers.RefreshToken)
 		auth.POST("/logout", handlers.LogOut)
 	}
 
@@ -126,8 +126,8 @@ func setupRoutes(r *gin.Engine) {
 	{
 		defaultRL := security.PathRateLimitMiddleware(5, 1*time.Minute)
 		users.GET("", handlers.FetchUsers)
-		users.GET("/:id/rices", defaultRL, handlers.FetchUserRices)
-		users.GET("/:id/rices/:slug", defaultRL, handlers.GetUserRiceBySlug)
+		users.GET("/:id/rices", security.PathRateLimitMiddleware(5, 1*time.Minute), handlers.FetchUserRices)
+		users.GET("/:id/rices/:slug", security.PathRateLimitMiddleware(30, 1*time.Minute), handlers.GetUserRiceBySlug)
 
 		authedOnly := users.Use(security.AuthMiddleware)
 		authedOnly.GET("/:id", defaultRL, handlers.GetUserById)

@@ -74,11 +74,22 @@ func computeExpiration(duration *string) (*time.Time, error) {
 	return nil, nil
 }
 
-func GetUserIdFromRequest(c *gin.Context) *string {
-	var userID *string = nil
-	tokenStr := strings.TrimSpace(c.GetHeader("Authorization"))
+// Tries to safely extract access token from request. Nothing happens if its unable to do so.
+func GetTokenFromRequest(c *gin.Context) *security.AccessToken {
+	tokenStr := c.Request.Header.Get("Authorization")
+	tokenStr = strings.TrimSpace(tokenStr)
+
 	token, err := security.ValidateToken(tokenStr)
 	if err == nil {
+		return token
+	}
+
+	return nil
+}
+
+func GetUserIdFromRequest(c *gin.Context) *string {
+	var userID *string = nil
+	if token := GetTokenFromRequest(c); token != nil {
 		userID = &token.Subject
 	}
 	return userID
@@ -205,11 +216,9 @@ func GetUserById(c *gin.Context) {
 }
 
 func GetUserRiceBySlug(c *gin.Context) {
-	username := c.Param("id") // path param has to be called 'id' because gin is upset otherwise
+	// path param has to be called 'id' because gin is upset otherwise
+	username := c.Param("id")
 	slug := c.Param("slug")
-
-	// check if request has been sent by logged in user
-	userID := GetUserIdFromRequest(c)
 
 	// check if rice's author exists
 	exists, err := repository.DoesUserExistsByUsername(username)
@@ -222,6 +231,13 @@ func GetUserRiceBySlug(c *gin.Context) {
 		return
 	}
 
+	// try to extract user id from caller
+	token := GetTokenFromRequest(c)
+	var userID *string = nil
+	if token != nil {
+		userID = &token.Subject
+	}
+
 	rice, err := repository.FindRiceBySlug(userID, slug, username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -230,6 +246,12 @@ func GetUserRiceBySlug(c *gin.Context) {
 		}
 
 		c.Error(errs.InternalError(err))
+		return
+	}
+
+	// check if rice is pending approval and if so, is the user permitted to see it
+	if rice.Rice.State == models.Waiting && (token == nil || !token.IsAdmin) {
+		c.Error(errs.RiceNotFound)
 		return
 	}
 
