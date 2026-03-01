@@ -1,6 +1,7 @@
 name: Deploy via SSH
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -10,6 +11,13 @@ on:
       - ".github/**"
       - "go.mod"
       - "go.sum"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
