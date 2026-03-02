@@ -295,7 +295,7 @@ func CreateRice(c *gin.Context) {
 	defer tx.Rollback(context.Background())
 
 	// insert the rice base (we need rice id for db relation)
-	rice, err := repository.InsertRice(tx, token.Subject, metadata.Title, slug.Make(metadata.Title), metadata.Description)
+	rice, err := repository.InsertRice(tx, token.Subject, metadata.Title, slug.Make(metadata.Title), metadata.Description, token.IsAdmin)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {

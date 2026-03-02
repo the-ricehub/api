@@ -137,8 +137,8 @@ var findRiceSql = buildFindRiceSql(RiceID)
 var findRiceBySlugSql = buildFindRiceSql(SlugAndUsername)
 
 const insertRiceSql = `
-INSERT INTO rices (author_id, title, slug, description)
-VALUES ($1, $2, $3, $4)
+INSERT INTO rices (author_id, title, slug, description, state)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *
 `
 const insertPreviewSql = `
@@ -359,8 +359,13 @@ func FetchUserRices(userID string, callerID *string) (r []models.PartialRice, er
 	return
 }
 
-func InsertRice(tx pgx.Tx, authorID string, title string, slug string, description string) (rice models.Rice, err error) {
-	rice, err = txRowToStruct[models.Rice](tx, insertRiceSql, authorID, title, slug, description)
+func InsertRice(tx pgx.Tx, authorID string, title string, slug string, description string, autoAccept bool) (rice models.Rice, err error) {
+	state := models.Waiting
+	if autoAccept {
+		state = models.Accepted
+	}
+
+	rice, err = txRowToStruct[models.Rice](tx, insertRiceSql, authorID, title, slug, description, state)
 	return
 }
 
