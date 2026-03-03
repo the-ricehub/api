@@ -116,6 +116,7 @@ type PartialRice struct {
 	IsStarred     bool
 	State         RiceState
 	CreatedAt     time.Time
+	Score         float32
 }
 
 type ReportWithUser struct {

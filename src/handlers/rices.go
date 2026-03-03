@@ -63,6 +63,8 @@ func FetchRices(c *gin.Context) {
 	token := GetTokenFromRequest(c)
 	isAdmin := token != nil && token.IsAdmin
 
+	// TODO: use ShouldBindQuery instead of manually validating each param
+
 	state := c.Query("state")
 	// check if user is an admin and can filter by state
 	if state != "" && isAdmin {
@@ -79,9 +81,12 @@ func FetchRices(c *gin.Context) {
 	lastID := c.Query("lastId")
 	lastCreatedAt := c.Query("lastCreatedAt")
 	lastDownloads := c.Query("lastDownloads")
+	lastStars := c.Query("lastStars")
+	lastScore := c.Query("lastScore")
+	reverseStr := c.DefaultQuery("reverse", "false")
 
 	var pag repository.Pagination
-	useDefault := lastID == "" && lastCreatedAt == "" && lastDownloads == ""
+	useDefault := lastID == "" && lastCreatedAt == "" && lastDownloads == "" && lastStars == "" && lastScore == ""
 
 	if lastID != "" {
 		id, err := uuid.Parse(lastID)
@@ -94,7 +99,7 @@ func FetchRices(c *gin.Context) {
 	}
 
 	if lastCreatedAt != "" {
-		ts, err := time.Parse("2006-01-02T15:04:05.000000-07:00", lastCreatedAt)
+		ts, err := time.Parse(time.RFC3339, lastCreatedAt)
 		if err != nil {
 			c.Error(errs.UserError("Failed to parse last created timestamp", http.StatusBadRequest))
 			return
@@ -113,10 +118,36 @@ func FetchRices(c *gin.Context) {
 		pag.LastDownloads = downloads
 	}
 
+	if lastStars != "" {
+		v, err := strconv.Atoi(lastStars)
+		if err != nil {
+			c.Error(errs.UserError("Failed to parse last stars query parameter", http.StatusBadRequest))
+			return
+		}
+
+		pag.LastStars = v
+	}
+
+	if lastScore != "" {
+		v, err := strconv.ParseFloat(lastScore, 32)
+		if err != nil {
+			c.Error(errs.UserError("Failed to parse last score query parameter", http.StatusBadRequest))
+			return
+		}
+
+		pag.LastScore = float32(v)
+	}
+
 	if useDefault {
-		pag.LastCreatedAt = time.Now().AddDate(999, 1, 1)
 		pag.LastID = nil
 		pag.LastDownloads = -1
+		pag.LastStars = -1
+		pag.LastScore = -1
+	}
+
+	pag.Reverse = false
+	if reverseStr != "false" {
+		pag.Reverse = true
 	}
 
 	rices := []models.PartialRice{}
@@ -142,8 +173,23 @@ func FetchRices(c *gin.Context) {
 		c.Error(errs.InternalError(err))
 		return
 	}
+	pages, err := repository.FetchPageCount()
+	if err != nil {
+		c.Error(errs.InternalError(err))
+		return
+	}
 
-	c.JSON(http.StatusOK, models.PartialRicesToDTO(rices))
+	if pag.Reverse {
+		// reverse rice array
+		for i, j := 0, len(rices)-1; i < j; i, j = i+1, j-1 {
+			rices[i], rices[j] = rices[j], rices[i]
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"pageCount": pages,
+		"rices":     models.PartialRicesToDTO(rices),
+	})
 }
 
 func GetRiceById(c *gin.Context) {

@@ -121,8 +121,8 @@ func (u User) ToDTO() UserDTO {
 		AvatarUrl:   utils.GetUserAvatar(u.AvatarPath),
 		IsAdmin:     u.IsAdmin,
 		IsBanned:    u.IsBanned,
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
+		CreatedAt:   u.CreatedAt.UTC(),
+		UpdatedAt:   u.UpdatedAt.UTC(),
 	}
 }
 
@@ -157,8 +157,8 @@ func (df RiceDotfiles) ToDTO() RiceDotfilesDTO {
 	return RiceDotfilesDTO{
 		FilePath:  utils.Config.CDNUrl + df.FilePath,
 		FileSize:  df.FileSize,
-		CreatedAt: df.CreatedAt,
-		UpdatedAt: df.UpdatedAt,
+		CreatedAt: df.CreatedAt.UTC(),
+		UpdatedAt: df.UpdatedAt.UTC(),
 	}
 }
 
@@ -185,8 +185,8 @@ func (r Rice) ToDTO() RiceDTO {
 		Stars:       0,
 		Previews:    []string{},
 		Dotfiles:    RiceDotfilesDTO{},
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
+		CreatedAt:   r.CreatedAt.UTC(),
+		UpdatedAt:   r.UpdatedAt.UTC(),
 	}
 }
 
@@ -234,8 +234,8 @@ func (r RiceWithRelations) ToDTO() RiceWithRelationsDTO {
 		Previews:    previews,
 		Dotfiles:    r.Dotfiles.ToDTO(),
 		Author:      r.User.ToDTO(),
-		CreatedAt:   r.Rice.CreatedAt,
-		UpdatedAt:   r.Rice.UpdatedAt,
+		CreatedAt:   r.Rice.CreatedAt.UTC(),
+		UpdatedAt:   r.Rice.UpdatedAt.UTC(),
 	}
 }
 
@@ -252,8 +252,8 @@ func (c RiceComment) ToDTO() RiceCommentDTO {
 		ID:        c.ID,
 		RiceID:    c.RiceID,
 		Content:   c.Content,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
+		CreatedAt: c.CreatedAt.UTC(),
+		UpdatedAt: c.UpdatedAt.UTC(),
 	}
 }
 
@@ -276,8 +276,8 @@ func (c RiceCommentWithSlug) ToDTO() RiceCommentWithSlugDTO {
 		Content:            c.Content,
 		RiceSlug:           c.RiceSlug,
 		RiceAuthorUsername: c.RiceAuthorUsername,
-		CreatedAt:          c.CreatedAt,
-		UpdatedAt:          c.UpdatedAt,
+		CreatedAt:          c.CreatedAt.UTC(),
+		UpdatedAt:          c.UpdatedAt.UTC(),
 	}
 }
 
@@ -300,8 +300,8 @@ func (c CommentWithUser) ToDTO() CommentWithUserDTO {
 		Username:    c.Username,
 		Avatar:      utils.GetUserAvatar(c.AvatarPath),
 		IsBanned:    c.IsBanned,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
+		CreatedAt:   c.CreatedAt.UTC(),
+		UpdatedAt:   c.UpdatedAt.UTC(),
 	}
 }
 
@@ -325,6 +325,7 @@ type PartialRiceDTO struct {
 	IsStarred   bool      `json:"isStarred"`
 	State       RiceState `json:"state"`
 	CreatedAt   time.Time `json:"createdAt"`
+	Score       float32   `json:"score"`
 }
 
 func (r PartialRice) ToDTO() PartialRiceDTO {
@@ -339,7 +340,8 @@ func (r PartialRice) ToDTO() PartialRiceDTO {
 		Downloads:   r.DownloadCount,
 		IsStarred:   r.IsStarred,
 		State:       r.State,
-		CreatedAt:   r.CreatedAt,
+		CreatedAt:   r.CreatedAt.UTC(),
+		Score:       r.Score,
 	}
 }
 
@@ -364,7 +366,17 @@ type ReportWithUserDTO struct {
 }
 
 func (r ReportWithUser) ToDTO() ReportWithUserDTO {
-	return ReportWithUserDTO(r)
+	return ReportWithUserDTO{
+		ID:          r.ID,
+		ReporterID:  r.ReporterID,
+		DisplayName: r.DisplayName,
+		Username:    r.Username,
+		Reason:      r.Reason,
+		RiceID:      r.RiceID,
+		CommentID:   r.CommentID,
+		IsClosed:    r.IsClosed,
+		CreatedAt:   r.CreatedAt.UTC(),
+	}
 }
 
 func ReportsToDTO(reports []ReportWithUser) []ReportWithUserDTO {
@@ -398,7 +410,7 @@ type WebsiteVariableDTO struct {
 func (v WebsiteVariable) ToDTO() WebsiteVariableDTO {
 	return WebsiteVariableDTO{
 		Value:     v.Value,
-		UpdatedAt: v.UpdatedAt,
+		UpdatedAt: v.UpdatedAt.UTC(),
 	}
 }
 
@@ -424,5 +436,21 @@ type UserBanDTO struct {
 }
 
 func (b UserBan) ToDTO() UserBanDTO {
-	return UserBanDTO(b)
+	if b.ExpiresAt != nil {
+		*b.ExpiresAt = b.ExpiresAt.UTC()
+	}
+	if b.RevokedAt != nil {
+		*b.RevokedAt = b.RevokedAt.UTC()
+	}
+
+	return UserBanDTO{
+		ID:        b.ID,
+		UserID:    b.UserID,
+		AdminID:   b.AdminID,
+		Reason:    b.Reason,
+		IsRevoked: b.IsRevoked,
+		ExpiresAt: b.ExpiresAt,
+		BannedAt:  b.BannedAt.UTC(),
+		RevokedAt: b.RevokedAt,
+	}
 }
