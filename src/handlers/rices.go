@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"ricehub/src/errs"
 	"ricehub/src/models"
 	"ricehub/src/repository"
@@ -247,6 +248,17 @@ func DownloadDotfiles(c *gin.Context) {
 		return
 	}
 
+	rice, err := repository.FindRiceById(nil, path.RiceID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.Error(errs.RiceNotFound)
+			return
+		}
+
+		c.Error(errs.InternalError(err))
+		return
+	}
+
 	filePath, err := repository.IncrementDotfilesDownloads(path.RiceID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -258,7 +270,13 @@ func DownloadDotfiles(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, utils.Config.CDNUrl+filePath)
+	fullPath := "./public" + filePath
+
+	ext := filepath.Ext(filePath)
+	timestamp := time.Now().UTC().Format("20060102-150405")
+	filename := fmt.Sprintf("%s-%s%s", slug.Make(rice.Rice.Title), timestamp, ext)
+
+	c.FileAttachment(fullPath, filename)
 }
 
 func CreateRice(c *gin.Context) {
